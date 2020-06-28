@@ -35,10 +35,7 @@ where
 
 fn list_ignores(basetarget: &Path) -> Result<Vec<PathBuf>, io::Error> {
     let mut ignores: Vec<PathBuf> = Vec::new();
-    let i_pat = format!(
-        "{}/**/.gitignore",
-        basetarget.as_os_str().to_str().unwrap_or_default(),
-    );
+    let i_pat = format!("{}/**/.gitignore", basetarget.to_str().unwrap_or_default(),);
     for entry in glob(&i_pat).expect("valid pattern") {
         match entry {
             Ok(path) => {
@@ -65,10 +62,7 @@ fn backup(backupdir: &Path, path: &Path) {
 fn link(base: &Path, target: &str, backupdir: &Path) {
     let basetarget = base.join(target);
     let ignores = list_ignores(&basetarget).unwrap_or_default();
-    let pat = format!(
-        "{}/**/*",
-        basetarget.as_os_str().to_str().unwrap_or_default()
-    );
+    let pat = format!("{}/**/*", basetarget.to_str().unwrap_or_default());
     for entry in glob(&pat).expect("valid pattern") {
         if let Ok(ref path) = entry {
             if !fs::metadata(path).expect("get metadata").is_file() {
@@ -102,7 +96,7 @@ fn link_targets(base: &Path, targets: &[String], backupdir: &Path) {
 
 fn list_links(base: &Path, root: &Path) -> Vec<(PathBuf, PathBuf)> {
     let mut links = Vec::new();
-    let pat = format!("{}/*", root.as_os_str().to_str().unwrap());
+    let pat = format!("{}/*", root.to_str().unwrap());
     for entry in glob(&pat).expect("valid pattern") {
         if let Ok(ref path) = entry {
             if let Ok(link) = fs::read_link(path) {
@@ -119,7 +113,7 @@ fn list_links(base: &Path, root: &Path) -> Vec<(PathBuf, PathBuf)> {
 
 fn print_links(base: &Path) {
     for (p, l) in list_links(base, &dirs::home_dir().expect("home")) {
-        println!("{} -> {}", p.as_os_str().to_str().unwrap(), l.as_os_str().to_str().unwrap())
+        println!("{} -> {}", p.to_str().unwrap(), l.to_str().unwrap())
     }
 }
 
