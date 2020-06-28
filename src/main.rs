@@ -101,6 +101,25 @@ fn link_targets(base: &Path, targets: &[String], backupdir: &Path) {
     }
 }
 
+fn list_links(base: &Path, root: &Path) {
+    let pat = format!("{}/*", root.as_os_str().to_str().unwrap());
+    for entry in glob(&pat).expect("valid pattern") {
+        if let Ok(ref path) = entry {
+            if let Ok(link) = fs::read_link(path) {
+                if link.starts_with(base) {
+                    println!(
+                        "{} -> {}",
+                        path.as_os_str().to_str().unwrap(),
+                        link.as_os_str().to_str().unwrap()
+                    );
+                }
+            } else if path.is_dir() {
+                list_links(base, &path)
+            }
+        }
+    }
+}
+
 fn main() -> Result<(), io::Error> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
@@ -109,7 +128,7 @@ fn main() -> Result<(), io::Error> {
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
         Command::Link { target } => link_targets(&base, &target, &backupdir),
-        Command::List => println!("Not implemented"),
+        Command::List => list_links(&base, &dirs::home_dir().expect("home")),
     };
     Ok(())
 }
