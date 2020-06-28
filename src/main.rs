@@ -83,8 +83,7 @@ fn link(base: &Path, target: &str, backupdir: &Path) {
             let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
             fs::create_dir_all(dst.parent().unwrap()).expect("create dirs");
             if dst.exists() {
-                if let Ok(_link) = fs::read_link(&dst)
-                {
+                if let Ok(_link) = fs::read_link(&dst) {
                     // TODO: check link == dst
                     println!("skip link {:?} -> {:?} (exists)", &dst, &path);
                     continue;
