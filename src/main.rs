@@ -37,17 +37,14 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>, io::Error> {
     let mut ignores: Vec<PathBuf> = Vec::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
     for entry in glob(&ifilespat).expect("valid pattern") {
-        match entry {
-            Ok(path) => {
-                if let Ok(lines) = read_lines(path) {
-                    for line in lines {
-                        if let Ok(pat) = line {
-                            ignores.extend(glob(&pat).expect("valid").filter_map(|p| p.ok()));
-                        }
+        if let Ok(path) = entry {
+            if let Ok(lines) = read_lines(path) {
+                for line in lines {
+                    if let Ok(pat) = line {
+                        ignores.extend(glob(&pat).expect("valid").filter_map(|p| p.ok()));
                     }
                 }
             }
-            Err(err) => println!("{}", err),
         }
     }
     Ok(ignores)
