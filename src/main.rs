@@ -33,10 +33,10 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn list_ignores(basetarget: &Path) -> Result<Vec<PathBuf>, io::Error> {
+fn list_ignores(base: &Path) -> Result<Vec<PathBuf>, io::Error> {
     let mut ignores: Vec<PathBuf> = Vec::new();
-    let i_pat = format!("{}/**/.gitignore", basetarget.to_str().unwrap_or_default(),);
-    for entry in glob(&i_pat).expect("valid pattern") {
+    let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
+    for entry in glob(&ifilespat).expect("valid pattern") {
         match entry {
             Ok(path) => {
                 if let Ok(lines) = read_lines(path) {
