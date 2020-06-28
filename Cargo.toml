@@ -3,3 +3,9 @@ name = "wagon"
 version = "0.1.0"
 authors = ["yasuyuky <yasuyuki.ymd@gmail.com>"]
 edition = "2018"
+
+[dependencies]
+structopt = "0.3.15"
+glob = "0.3.0"
+dirs = "3.0.0"
+chrono = "0.4.11"
