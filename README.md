@@ -1,0 +1,48 @@
+# Wagon
+
+Utility to make dotfiles portable with symbolic links
+
+# Installation
+
+1. Checkout this repository
+2. `cargo build --release && cargo install --path .`
+
+# Usage
+
+Create the dotfiles in your git-controlled directory.
+
+Place dotfiles in a subdirectory such as the following.
+
+```tree
+ dotfiles
+ ├── bash
+ │  └── .bashrc
+ ├── direnv
+ │  └── .config
+ │     └── direnv
+ │        ├── .gitignore
+ │        └── direnvrc
+ ├── git
+ │  ├── .config
+ │  │  └── git
+ │  │     └── ignore
+ │  └── .gitconfig
+ ...
+ ├── python
+ │  ├── .config
+ │  │  ├── flake8
+ │  │  └── yapf
+ │  │     └── style
+ │  ├── .pylintrc
+ │  └── .pythonstartup
+ ├── tmux
+ │  └── .tmux.conf
+ └── zsh
+    └── .zshrc
+```
+
+Then execute the following command, and symbolic links to your files will be created in your home.
+
+```console
+wagon link bash git tmux ...
+```
