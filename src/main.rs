@@ -95,7 +95,7 @@ fn link(base: &Path, target: &str, backupdir: &Path) {
     }
 }
 
-fn retrieve_targets(base: &Path, targets: &[String], backupdir: &Path) {
+fn link_targets(base: &Path, targets: &[String], backupdir: &Path) {
     for target in targets {
         link(base, target, backupdir)
     }
@@ -108,7 +108,7 @@ fn main() -> Result<(), io::Error> {
     let mut backupdir = PathBuf::new().join(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
-        Command::Link { target } => retrieve_targets(&base, &target, &backupdir),
+        Command::Link { target } => link_targets(&base, &target, &backupdir),
         Command::List => println!("Not implemented"),
     };
     Ok(())
