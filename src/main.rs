@@ -1,8 +1,10 @@
+extern crate anyhow;
 extern crate chrono;
 extern crate dirs;
 extern crate glob;
 extern crate structopt;
 
+use anyhow::Result;
 use chrono::prelude::*;
 use glob::glob;
 use std::fs;
@@ -33,7 +35,7 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn list_ignores(base: &Path) -> Result<Vec<PathBuf>, io::Error> {
+fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     let mut ignores: Vec<PathBuf> = Vec::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
     for entry in glob(&ifilespat).expect("valid pattern") {
@@ -50,13 +52,13 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>, io::Error> {
     Ok(ignores)
 }
 
-fn backup(backupdir: &Path, path: &Path) {
+fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     fs::create_dir_all(backupdir).expect("create backup dir");
     let backup = backupdir.join(path);
-    fs::rename(path, backup).expect("backed up");
+    Ok(fs::rename(path, backup)?)
 }
 
-fn link(base: &Path, target: &str, backupdir: &Path) {
+fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
     let basetarget = base.join(target);
     let ignores = list_ignores(&basetarget).unwrap_or_default();
     let pat = format!("{}/**/*", basetarget.to_str().unwrap_or_default());
@@ -79,19 +81,21 @@ fn link(base: &Path, target: &str, backupdir: &Path) {
                     continue;
                 }
             }
-            backup(backupdir, path);
+            backup(backupdir, path)?;
             unix::fs::symlink(path, dst).expect("create symlink");
         }
     }
+    Ok(())
 }
 
-fn link_targets(base: &Path, targets: &[String], backupdir: &Path) {
+fn link_targets(base: &Path, targets: &[String], backupdir: &Path) -> Result<()> {
     for target in targets {
-        link(base, target, backupdir)
+        link(base, target, backupdir)?
     }
+    Ok(())
 }
 
-fn list_links(base: &Path, root: &Path) -> Vec<(PathBuf, PathBuf)> {
+fn list_links(base: &Path, root: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
     let mut links = Vec::new();
     let pat = format!("{}/*", root.to_str().unwrap());
     for entry in glob(&pat).expect("valid pattern") {
@@ -101,28 +105,29 @@ fn list_links(base: &Path, root: &Path) -> Vec<(PathBuf, PathBuf)> {
                     links.push((path.clone(), link));
                 }
             } else if path.is_dir() {
-                links.extend(list_links(base, &path))
+                links.extend(list_links(base, &path)?)
             }
         }
     }
-    links
+    Ok(links)
 }
 
-fn print_links(base: &Path) {
-    for (p, l) in list_links(base, &dirs::home_dir().expect("home")) {
+fn print_links(base: &Path) -> Result<()> {
+    for (p, l) in list_links(base, &dirs::home_dir().expect("home"))? {
         println!("{} -> {}", p.to_str().unwrap(), l.to_str().unwrap())
     }
+    Ok(())
 }
 
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
     let local: DateTime<Local> = Local::now();
     let mut backupdir = PathBuf::new().join(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
-        Command::Link { target } => link_targets(&base, &target, &backupdir),
-        Command::List => print_links(&base),
+        Command::Link { target } => link_targets(&base, &target, &backupdir)?,
+        Command::List => print_links(&base)?,
     };
     Ok(())
 }
