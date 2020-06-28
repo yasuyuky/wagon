@@ -100,22 +100,26 @@ fn link_targets(base: &Path, targets: &[String], backupdir: &Path) {
     }
 }
 
-fn list_links(base: &Path, root: &Path) {
+fn list_links(base: &Path, root: &Path) -> Vec<(PathBuf, PathBuf)> {
+    let mut links = Vec::new();
     let pat = format!("{}/*", root.as_os_str().to_str().unwrap());
     for entry in glob(&pat).expect("valid pattern") {
         if let Ok(ref path) = entry {
             if let Ok(link) = fs::read_link(path) {
                 if link.starts_with(base) {
-                    println!(
-                        "{} -> {}",
-                        path.as_os_str().to_str().unwrap(),
-                        link.as_os_str().to_str().unwrap()
-                    );
+                    links.push((path.clone(), link));
                 }
             } else if path.is_dir() {
-                list_links(base, &path)
+                links.extend(list_links(base, &path))
             }
         }
+    }
+    links
+}
+
+fn print_links(base: &Path) {
+    for (p, l) in list_links(base, &dirs::home_dir().expect("home")) {
+        println!("{} -> {}", p.as_os_str().to_str().unwrap(), l.as_os_str().to_str().unwrap())
     }
 }
 
@@ -127,7 +131,7 @@ fn main() -> Result<(), io::Error> {
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
         Command::Link { target } => link_targets(&base, &target, &backupdir),
-        Command::List => list_links(&base, &dirs::home_dir().expect("home")),
+        Command::List => print_links(&base),
     };
     Ok(())
 }
