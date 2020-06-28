@@ -33,12 +33,11 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn list_ignores(base: &Path, target: &str) -> Result<Vec<PathBuf>, io::Error> {
+fn list_ignores(basetarget: &Path) -> Result<Vec<PathBuf>, io::Error> {
     let mut ignores: Vec<PathBuf> = Vec::new();
     let i_pat = format!(
-        "{}/{}/**/.gitignore",
-        base.as_os_str().to_str().unwrap_or_default(),
-        target
+        "{}/**/.gitignore",
+        basetarget.as_os_str().to_str().unwrap_or_default(),
     );
     for entry in glob(&i_pat).expect("valid pattern") {
         match entry {
@@ -64,8 +63,8 @@ fn backup(backupdir: &Path, path: &Path) {
 }
 
 fn link(base: &Path, target: &str, backupdir: &Path) {
-    let ignores = list_ignores(base, target).unwrap_or_default();
     let basetarget = base.join(target);
+    let ignores = list_ignores(&basetarget).unwrap_or_default();
     let pat = format!(
         "{}/**/*",
         basetarget.as_os_str().to_str().unwrap_or_default()
