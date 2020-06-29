@@ -60,11 +60,11 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
 
 fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
     let basetarget = base.join(target);
-    let ignores = list_ignores(&basetarget).unwrap_or_default();
+    let ignores = list_ignores(&basetarget)?;
     let pat = format!("{}/**/*", basetarget.to_str().unwrap_or_default());
-    for entry in glob(&pat).expect("valid pattern") {
+    for entry in glob(&pat)? {
         if let Ok(ref path) = entry {
-            if !fs::metadata(path).expect("get metadata").is_file() {
+            if !fs::metadata(path)?.is_file() {
                 continue;
             }
             if ignores.iter().any(|ip| path.starts_with(ip)) {
@@ -73,7 +73,7 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
 
             let f = path.strip_prefix(&basetarget).unwrap();
             let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
-            fs::create_dir_all(dst.parent().unwrap()).expect("create dirs");
+            fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
             if dst.exists() {
                 if let Ok(_link) = fs::read_link(&dst) {
                     // TODO: check link == dst
@@ -82,7 +82,7 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
                 }
             }
             backup(backupdir, path)?;
-            unix::fs::symlink(path, dst).expect("create symlink");
+            unix::fs::symlink(path, dst)?;
         }
     }
     Ok(())
