@@ -30,13 +30,9 @@ enum Command {
 fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     let mut ignores: Vec<PathBuf> = Vec::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
-    for entry in glob(&ifilespat).expect("valid pattern") {
-        if let Ok(path) = entry {
-            for line in io::BufReader::new(fs::File::open(path)?).lines() {
-                if let Ok(pat) = line {
-                    ignores.extend(glob(&pat).expect("valid").filter_map(|p| p.ok()));
-                }
-            }
+    for ref path in glob(&ifilespat)?.flatten() {
+        for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
+            ignores.extend(glob(&line)?.flatten());
         }
     }
     Ok(ignores)
@@ -52,28 +48,25 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
     let basetarget = base.join(target);
     let ignores = list_ignores(&basetarget)?;
     let pat = format!("{}/**/*", basetarget.to_str().unwrap_or_default());
-    for entry in glob(&pat)? {
-        if let Ok(ref path) = entry {
-            if !fs::metadata(path)?.is_file() {
-                continue;
-            }
-            if ignores.iter().any(|ip| path.starts_with(ip)) {
-                continue;
-            }
-
-            let f = path.strip_prefix(&basetarget).unwrap();
-            let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
-            fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
-            if dst.exists() {
-                if let Ok(_link) = fs::read_link(&dst) {
-                    // TODO: check link == dst
-                    println!("skip link {:?} -> {:?} (exists)", &dst, &path);
-                    continue;
-                }
-            }
-            backup(backupdir, path)?;
-            unix::fs::symlink(path, dst)?;
+    for ref path in glob(&pat)?.flatten() {
+        if !fs::metadata(path)?.is_file() {
+            continue;
         }
+        if ignores.iter().any(|ip| path.starts_with(ip)) {
+            continue;
+        }
+        let f = path.strip_prefix(&basetarget).unwrap();
+        let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
+        fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
+        if dst.exists() {
+            if let Ok(_link) = fs::read_link(&dst) {
+                // TODO: check link == dst
+                println!("skip link {:?} -> {:?} (exists)", &dst, &path);
+                continue;
+            }
+        }
+        backup(backupdir, path)?;
+        unix::fs::symlink(path, dst)?;
     }
     Ok(())
 }
@@ -88,15 +81,13 @@ fn link_targets(base: &Path, targets: &[String], backupdir: &Path) -> Result<()>
 fn list_links(base: &Path, root: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
     let mut links = Vec::new();
     let pat = format!("{}/*", root.to_str().unwrap());
-    for entry in glob(&pat).expect("valid pattern") {
-        if let Ok(ref path) = entry {
-            if let Ok(link) = fs::read_link(path) {
-                if link.starts_with(base) {
-                    links.push((path.clone(), link));
-                }
-            } else if path.is_dir() {
-                links.extend(list_links(base, &path)?)
+    for ref path in glob(&pat)?.flatten() {
+        if let Ok(link) = fs::read_link(path) {
+            if link.starts_with(base) {
+                links.push((path.clone(), link));
             }
+        } else if path.is_dir() {
+            links.extend(list_links(base, &path)?)
         }
     }
     Ok(links)
