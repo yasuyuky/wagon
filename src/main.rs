@@ -27,24 +27,14 @@ enum Command {
     List,
 }
 
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<fs::File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = fs::File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
-}
-
 fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     let mut ignores: Vec<PathBuf> = Vec::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
     for entry in glob(&ifilespat).expect("valid pattern") {
         if let Ok(path) = entry {
-            if let Ok(lines) = read_lines(path) {
-                for line in lines {
-                    if let Ok(pat) = line {
-                        ignores.extend(glob(&pat).expect("valid").filter_map(|p| p.ok()));
-                    }
+            for line in io::BufReader::new(fs::File::open(path)?).lines() {
+                if let Ok(pat) = line {
+                    ignores.extend(glob(&pat).expect("valid").filter_map(|p| p.ok()));
                 }
             }
         }
