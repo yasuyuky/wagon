@@ -24,7 +24,7 @@ enum Command {
     },
     /// List links
     #[structopt(alias = "ls")]
-    List,
+    List { target: Vec<String> },
 }
 
 fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
@@ -85,9 +85,14 @@ fn link_targets(base: &Path, targets: &[String], backupdir: &Path) -> Result<()>
     Ok(())
 }
 
-fn print_links(base: &Path) -> Result<()> {
-    let pat = format!("{}/*", base.to_str().unwrap());
-    for ref target in glob(&pat)?.flatten() {
+fn print_links(base: &Path, targets: &[String]) -> Result<()> {
+    let alltargets: Vec<PathBuf> = if targets.is_empty() {
+        let pat = format!("{}/*", base.to_str().unwrap());
+        glob(&pat)?.flatten().collect()
+    } else {
+        targets.iter().map(PathBuf::from).collect()
+    };
+    for ref target in alltargets {
         for (src, dst) in list_candidates(&base.join(target))? {
             if dst.exists() {
                 if let Ok(link) = fs::read_link(&dst) {
@@ -109,7 +114,7 @@ fn main() -> Result<()> {
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
         Command::Link { target } => link_targets(&base, &target, &backupdir)?,
-        Command::List => print_links(&base)?,
+        Command::List { target } => print_links(&base, &target)?,
     };
     Ok(())
 }
