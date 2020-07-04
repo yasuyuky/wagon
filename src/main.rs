@@ -68,7 +68,7 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
         fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
         if dst.exists() {
             if let Ok(_link) = fs::read_link(&dst) {
-                // TODO: check link == dst
+                // TODO: check link == src
                 println!("skip link {:?} -> {:?} (exists)", &dst, &src);
                 continue;
             }
