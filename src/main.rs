@@ -35,10 +35,10 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
-fn list_candidates(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
+fn list_items(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
-    let mut candidates = vec![];
+    let mut items = vec![];
     for src in glob(&pat)?.flatten() {
         if !fs::metadata(&src)?.is_file() {
             continue;
@@ -48,13 +48,13 @@ fn list_candidates(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
         }
         let f = src.strip_prefix(&base).unwrap();
         let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
-        candidates.push((src, dst));
+        items.push((src, dst));
     }
-    Ok(candidates)
+    Ok(items)
 }
 
 fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
-    for (src, dst) in list_candidates(&base.join(target))? {
+    for (src, dst) in list_items(&base.join(target))? {
         fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
         if dst.exists() {
             if let Ok(link) = fs::read_link(&dst) {
@@ -87,7 +87,7 @@ fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
         targets.iter().map(PathBuf::from).collect()
     };
     for ref target in alltargets {
-        for (src, dst) in list_candidates(&base.join(target))? {
+        for (src, dst) in list_items(&base.join(target))? {
             if dst.exists() {
                 if let Ok(link) = fs::read_link(&dst) {
                     if link == src {
