@@ -71,8 +71,8 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
                 println!("skip link {:?} -> {:?} (exists)", &dst, &src);
                 continue;
             }
+            backup(backupdir, &dst)?;
         }
-        backup(backupdir, &dst)?;
         unix::fs::symlink(src, dst)?;
     }
     Ok(())
