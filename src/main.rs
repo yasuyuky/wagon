@@ -18,13 +18,10 @@ use structopt::StructOpt;
 enum Command {
     /// Link
     #[structopt(alias = "ln")]
-    Link {
-        #[structopt(parse(from_str))]
-        target: Vec<String>,
-    },
+    Link { target: Vec<PathBuf> },
     /// List links
     #[structopt(alias = "ls")]
-    List { target: Vec<String> },
+    List { target: Vec<PathBuf> },
 }
 
 fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
@@ -62,7 +59,7 @@ fn list_candidates(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
     Ok(candidates)
 }
 
-fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
+fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for (src, dst) in list_candidates(&base.join(target))? {
         fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
         if dst.exists() {
@@ -80,14 +77,14 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn link_targets(base: &Path, targets: &[String], backupdir: &Path) -> Result<()> {
+fn link_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()> {
     for target in targets {
         link(base, target, backupdir)?
     }
     Ok(())
 }
 
-fn print_links(base: &Path, targets: &[String]) -> Result<()> {
+fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
     let alltargets: Vec<PathBuf> = if targets.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
         glob(&pat)?.flatten().collect()
