@@ -63,10 +63,11 @@ fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for (src, dst) in list_candidates(&base.join(target))? {
         fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
         if dst.exists() {
-            if let Ok(_link) = fs::read_link(&dst) {
-                // TODO: check link == src
-                println!("SKIP: {:?} -> {:?} (exists)", &dst, &src);
-                continue;
+            if let Ok(link) = fs::read_link(&dst) {
+                if link == src {
+                    println!("SKIP: {:?} -> {:?} (exists)", &dst, &src);
+                    continue;
+                }
             }
             println!("BACKUP: {:?}", &dst);
             backup(backupdir, &dst)?;
