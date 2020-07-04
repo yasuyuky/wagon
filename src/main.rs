@@ -68,11 +68,13 @@ fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
         if dst.exists() {
             if let Ok(_link) = fs::read_link(&dst) {
                 // TODO: check link == src
-                println!("skip link {:?} -> {:?} (exists)", &dst, &src);
+                println!("SKIP: {:?} -> {:?} (exists)", &dst, &src);
                 continue;
             }
+            println!("BACKUP: {:?}", &dst);
             backup(backupdir, &dst)?;
         }
+        println!("LINK: {:?} -> {:?}", &dst, &src);
         unix::fs::symlink(src, dst)?;
     }
     Ok(())
