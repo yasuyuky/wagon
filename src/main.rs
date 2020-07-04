@@ -44,10 +44,9 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
-fn list_candidates(base: &Path, target: &str) -> Result<Vec<(PathBuf, PathBuf)>> {
-    let basetarget = base.join(target);
-    let ignores = list_ignores(&basetarget)?;
-    let pat = format!("{}/**/*", basetarget.to_str().unwrap_or_default());
+fn list_candidates(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
+    let ignores = list_ignores(&base)?;
+    let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
     let mut candidates = vec![];
     for src in glob(&pat)?.flatten() {
         if !fs::metadata(&src)?.is_file() {
@@ -56,7 +55,7 @@ fn list_candidates(base: &Path, target: &str) -> Result<Vec<(PathBuf, PathBuf)>>
         if ignores.iter().any(|ip| src.starts_with(ip)) {
             continue;
         }
-        let f = src.strip_prefix(&basetarget).unwrap();
+        let f = src.strip_prefix(&base).unwrap();
         let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
         candidates.push((src, dst));
     }
@@ -64,7 +63,7 @@ fn list_candidates(base: &Path, target: &str) -> Result<Vec<(PathBuf, PathBuf)>>
 }
 
 fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
-    for (src, dst) in list_candidates(base, target)? {
+    for (src, dst) in list_candidates(&base.join(target))? {
         fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
         if dst.exists() {
             if let Ok(_link) = fs::read_link(&dst) {
