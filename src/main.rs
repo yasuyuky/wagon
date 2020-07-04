@@ -44,29 +44,37 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
-fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
+fn list_candidates(base: &Path, target: &str) -> Result<Vec<(PathBuf, PathBuf)>> {
     let basetarget = base.join(target);
     let ignores = list_ignores(&basetarget)?;
     let pat = format!("{}/**/*", basetarget.to_str().unwrap_or_default());
-    for ref path in glob(&pat)?.flatten() {
-        if !fs::metadata(path)?.is_file() {
+    let mut candidates = vec![];
+    for src in glob(&pat)?.flatten() {
+        if !fs::metadata(&src)?.is_file() {
             continue;
         }
-        if ignores.iter().any(|ip| path.starts_with(ip)) {
+        if ignores.iter().any(|ip| src.starts_with(ip)) {
             continue;
         }
-        let f = path.strip_prefix(&basetarget).unwrap();
+        let f = src.strip_prefix(&basetarget).unwrap();
         let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
+        candidates.push((src, dst));
+    }
+    Ok(candidates)
+}
+
+fn link(base: &Path, target: &str, backupdir: &Path) -> Result<()> {
+    for (src, dst) in list_candidates(base, target)? {
         fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
         if dst.exists() {
             if let Ok(_link) = fs::read_link(&dst) {
                 // TODO: check link == dst
-                println!("skip link {:?} -> {:?} (exists)", &dst, &path);
+                println!("skip link {:?} -> {:?} (exists)", &dst, &src);
                 continue;
             }
         }
-        backup(backupdir, path)?;
-        unix::fs::symlink(path, dst)?;
+        backup(backupdir, &dst)?;
+        unix::fs::symlink(src, dst)?;
     }
     Ok(())
 }
