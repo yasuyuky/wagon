@@ -105,7 +105,7 @@ fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
     let local: DateTime<Local> = Local::now();
-    let mut backupdir = PathBuf::new().join(".backups");
+    let mut backupdir = PathBuf::from(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
         Command::Link { target } => link_targets(&base, &target, &backupdir)?,
