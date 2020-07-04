@@ -1,9 +1,3 @@
-extern crate anyhow;
-extern crate chrono;
-extern crate dirs;
-extern crate glob;
-extern crate structopt;
-
 use anyhow::Result;
 use chrono::prelude::*;
 use glob::glob;
