@@ -85,26 +85,18 @@ fn link_targets(base: &Path, targets: &[String], backupdir: &Path) -> Result<()>
     Ok(())
 }
 
-fn list_links(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
-    let mut links = Vec::new();
+fn print_links(base: &Path) -> Result<()> {
     let pat = format!("{}/*", base.to_str().unwrap());
     for ref target in glob(&pat)?.flatten() {
         for (src, dst) in list_candidates(&base.join(target))? {
             if dst.exists() {
                 if let Ok(link) = fs::read_link(&dst) {
                     if link == src {
-                        links.push((src, dst));
+                        println!("{} -> {}", &dst.to_str().unwrap(), &src.to_str().unwrap());
                     }
                 }
             }
         }
-    }
-    Ok(links)
-}
-
-fn print_links(base: &Path) -> Result<()> {
-    for (p, l) in list_links(base)? {
-        println!("{} -> {}", p.to_str().unwrap(), l.to_str().unwrap())
     }
     Ok(())
 }
