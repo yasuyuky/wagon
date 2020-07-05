@@ -53,8 +53,10 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
 }
 
 fn backup(backupdir: &Path, path: &Path) -> Result<()> {
-    fs::create_dir_all(backupdir).expect("create backup dir");
-    let backup = backupdir.join(path);
+    let mut components = path.components();
+    components.next();
+    let backup = backupdir.join(components.as_path());
+    fs::create_dir_all(backup.parent().unwrap_or(backupdir)).expect("create backup dir");
     Ok(fs::rename(path, backup)?)
 }
 
