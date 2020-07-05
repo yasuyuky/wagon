@@ -1,5 +1,6 @@
 use anyhow::Result;
 use chrono::prelude::*;
+use colored::*;
 use glob::glob;
 use std::fs;
 use std::io::{self, BufRead};
@@ -59,14 +60,14 @@ fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
         if dst.exists() {
             if let Ok(link) = fs::read_link(&dst) {
                 if link == src {
-                    println!("SKIP: {:?} -> {:?} (exists)", &dst, &src);
+                    println!("{} {:?} -> {:?} (exists)", "SKIP:".cyan(), &dst, &src);
                     continue;
                 }
             }
-            println!("BACKUP: {:?}", &dst);
+            println!("{} {:?}", "BACKUP:".yellow(), &dst);
             backup(backupdir, &dst)?;
         }
-        println!("LINK: {:?} -> {:?}", &dst, &src);
+        println!("{} {:?} -> {:?}", "LINK:".green(), &dst, &src);
         unix::fs::symlink(src, dst)?;
     }
     Ok(())
