@@ -19,6 +19,28 @@ enum Command {
     List { target: Vec<PathBuf> },
 }
 
+struct Link {
+    source: PathBuf,
+    target: PathBuf,
+}
+
+impl Link {
+    fn new(source: PathBuf, target: PathBuf) -> Self {
+        Self { source, target }
+    }
+}
+
+impl std::fmt::Display for Link {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} -> {}",
+            self.target.to_str().unwrap_or_default(),
+            self.source.to_str().unwrap_or_default()
+        )
+    }
+}
+
 fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     let mut ignores: Vec<PathBuf> = Vec::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
@@ -36,7 +58,7 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
-fn list_items(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
+fn list_items(base: &Path) -> Result<Vec<Link>> {
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
     let mut items = vec![];
@@ -49,26 +71,26 @@ fn list_items(base: &Path) -> Result<Vec<(PathBuf, PathBuf)>> {
         }
         let f = src.strip_prefix(&base).unwrap();
         let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
-        items.push((src, dst));
+        items.push(Link::new(src, dst));
     }
     Ok(items)
 }
 
 fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
-    for (src, dst) in list_items(&base.join(target))? {
-        fs::create_dir_all(dst.parent().unwrap_or(Path::new("/")))?;
-        if dst.exists() {
-            if let Ok(link) = fs::read_link(&dst) {
-                if link == src {
-                    println!("{} {:?} -> {:?} (exists)", "SKIP:".cyan(), &dst, &src);
+    for link in list_items(&base.join(target))? {
+        fs::create_dir_all(link.target.parent().unwrap_or(Path::new("/")))?;
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{} {} (exists)", "SKIP:".cyan(), &link);
                     continue;
                 }
             }
-            println!("{} {:?}", "BACKUP:".yellow(), &dst);
-            backup(backupdir, &dst)?;
+            println!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            backup(backupdir, &link.target)?;
         }
-        println!("{} {:?} -> {:?}", "LINK:".green(), &dst, &src);
-        unix::fs::symlink(src, dst)?;
+        println!("{} {}", "LINK:".green(), &link);
+        unix::fs::symlink(link.source, link.target)?;
     }
     Ok(())
 }
@@ -88,11 +110,11 @@ fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
         targets.iter().map(PathBuf::from).collect()
     };
     for ref target in alltargets {
-        for (src, dst) in list_items(&base.join(target))? {
-            if dst.exists() {
-                if let Ok(link) = fs::read_link(&dst) {
-                    if link == src {
-                        println!("{} -> {}", &dst.to_str().unwrap(), &src.to_str().unwrap());
+        for link in list_items(&base.join(target))? {
+            if link.target.exists() {
+                if let Ok(readlink) = fs::read_link(&link.target) {
+                    if readlink == link.source {
+                        println!("{}", &link);
                     }
                 }
             }
