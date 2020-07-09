@@ -11,6 +11,9 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Command {
+    // Copy
+    #[structopt(alias = "cp")]
+    Copy { target: Vec<PathBuf> },
     /// Link
     #[structopt(alias = "ln")]
     Link { target: Vec<PathBuf> },
@@ -104,6 +107,33 @@ fn link_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()
     Ok(())
 }
 
+fn copy(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
+    for link in list_items(&base.join(target))? {
+        fs::create_dir_all(link.target.parent().unwrap_or(Path::new("/")))?;
+        if link.target.exists() {
+            let content_src = fs::read(&link.source)?;
+            if let Ok(content) = fs::read(&link.target) {
+                if content == content_src {
+                    println!("{} {} (exists)", "SKIP:".cyan(), &link);
+                    continue;
+                }
+            }
+            println!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            backup(backupdir, &link.target)?;
+        }
+        println!("{} {}", "COPY:".green(), &link);
+        fs::copy(link.source, link.target)?;
+    }
+    Ok(())
+}
+
+fn copy_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()> {
+    for target in targets {
+        copy(base, target, backupdir)?
+    }
+    Ok(())
+}
+
 fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
     let alltargets: Vec<PathBuf> = if targets.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -132,6 +162,7 @@ fn main() -> Result<()> {
     let mut backupdir = PathBuf::from(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
+        Command::Copy { target } => copy_targets(&base, &target, &backupdir)?,
         Command::Link { target } => link_targets(&base, &target, &backupdir)?,
         Command::List { target } => print_links(&base, &target)?,
     };
