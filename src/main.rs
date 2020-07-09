@@ -161,10 +161,9 @@ fn main() -> Result<()> {
     let local: DateTime<Local> = Local::now();
     let mut backupdir = PathBuf::from(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
-    match command {
+    Ok(match command {
         Command::Copy { target } => copy_targets(&base, &target, &backupdir)?,
         Command::Link { target } => link_targets(&base, &target, &backupdir)?,
         Command::List { target } => print_links(&base, &target)?,
-    };
-    Ok(())
+    })
 }
