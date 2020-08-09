@@ -63,6 +63,10 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
+fn get_dst() -> PathBuf {
+    dirs::home_dir().expect("home  dir")
+}
+
 fn list_items(base: &Path) -> Result<Vec<Link>> {
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
@@ -75,7 +79,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
             continue;
         }
         let f = src.strip_prefix(&base).unwrap();
-        let dst: PathBuf = dirs::home_dir().expect("home dir").join(f);
+        let dst: PathBuf = get_dst().join(f);
         items.push(Link::new(src, dst));
     }
     Ok(items)
