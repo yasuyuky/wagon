@@ -2,8 +2,9 @@ use anyhow::Result;
 use chrono::prelude::*;
 use colored::*;
 use glob::glob;
+use serde_derive::Deserialize;
 use std::fs;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Error, ErrorKind, Read};
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
@@ -30,6 +31,20 @@ struct Link {
 impl Link {
     fn new(source: PathBuf, target: PathBuf) -> Self {
         Self { source, target }
+    }
+}
+
+#[derive(Deserialize)]
+struct Config {
+    dest: Option<PathBuf>,
+}
+
+impl Config {
+    pub fn from_path(confpath: &Path) -> Result<Self> {
+        let mut file = fs::File::open(confpath)?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        Ok(toml::from_str::<Config>(&buf)?)
     }
 }
 
@@ -63,8 +78,16 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
-fn get_dst() -> PathBuf {
-    dirs::home_dir().expect("home dir")
+fn get_config(base: &Path) -> Option<Config> {
+    let confpath = base.join(Path::new(".wagon.toml"));
+    Config::from_path(&confpath).ok()
+}
+
+fn get_dest(src: &Path) -> Result<PathBuf> {
+    match get_config(&src.parent().unwrap()).and_then(|c| c.dest) {
+        Some(p) => Ok(p),
+        None => dirs::home_dir().ok_or(anyhow::Error::new(Error::from(ErrorKind::NotFound))),
+    }
 }
 
 fn list_items(base: &Path) -> Result<Vec<Link>> {
@@ -79,7 +102,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
             continue;
         }
         let f = src.strip_prefix(&base).unwrap();
-        let dst: PathBuf = get_dst().join(f);
+        let dst = get_dest(&src)?.join(f);
         items.push(Link::new(src, dst));
     }
     Ok(items)
