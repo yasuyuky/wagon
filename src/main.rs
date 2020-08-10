@@ -64,7 +64,7 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
 }
 
 fn get_dst() -> PathBuf {
-    dirs::home_dir().expect("home  dir")
+    dirs::home_dir().expect("home dir")
 }
 
 fn list_items(base: &Path) -> Result<Vec<Link>> {
