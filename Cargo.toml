@@ -2,6 +2,7 @@
 authors = ["yasuyuky <yasuyuki.ymd@gmail.com>"]
 description = "A command line utility to manage configuration files in one place"
 edition = "2018"
+exclude = [".*"]
 license = "MIT"
 name = "wagon"
 repository = "https://github.com/yasuyuky/wagon"
