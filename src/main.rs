@@ -37,6 +37,7 @@ impl Link {
 #[derive(Deserialize)]
 struct Config {
     dest: Option<PathBuf>,
+    init: Vec<InitCommand>,
 }
 
 #[derive(Deserialize)]
