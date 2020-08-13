@@ -39,6 +39,12 @@ struct Config {
     dest: Option<PathBuf>,
 }
 
+#[derive(Deserialize)]
+struct InitCommand {
+    command: String,
+    args: Vec<String>,
+}
+
 impl Config {
     pub fn from_path(confpath: &Path) -> Result<Self> {
         let mut file = fs::File::open(confpath)?;
