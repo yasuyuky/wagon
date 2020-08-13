@@ -12,7 +12,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Command {
-    // Copy
+    /// Copy
     #[structopt(alias = "cp")]
     Copy { target: Vec<PathBuf> },
     /// Link
