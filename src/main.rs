@@ -189,6 +189,20 @@ fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
+fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
+    for target in targets {
+        if let Some(conf) = get_config(&base.join(target)) {
+            for initc in conf.init {
+                let out = std::process::Command::new(initc.command)
+                    .args(initc.args)
+                    .output()?;
+                println!("{:?}", out.stdout);
+            }
+        }
+    }
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
