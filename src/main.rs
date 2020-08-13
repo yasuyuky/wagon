@@ -21,6 +21,8 @@ enum Command {
     /// List links
     #[structopt(alias = "ls")]
     List { target: Vec<PathBuf> },
+    /// Init
+    Init { target: Vec<PathBuf> },
 }
 
 struct Link {
@@ -213,6 +215,7 @@ fn main() -> Result<()> {
         Command::Copy { target } => copy_targets(&base, &target, &backupdir)?,
         Command::Link { target } => link_targets(&base, &target, &backupdir)?,
         Command::List { target } => print_links(&base, &target)?,
+        Command::Init { target } => init_targets(&base, &target)?,
     }
     Ok(())
 }
