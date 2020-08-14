@@ -46,6 +46,7 @@ struct Config {
 struct InitCommand {
     command: String,
     args: Vec<String>,
+    os: Option<String>,
 }
 
 impl Config {
