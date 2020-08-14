@@ -36,13 +36,13 @@ impl Link {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct Config {
     dest: Option<PathBuf>,
     init: Vec<InitCommand>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct InitCommand {
     command: String,
     args: Vec<String>,
