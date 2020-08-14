@@ -195,10 +195,13 @@ fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
     for target in targets {
         if let Some(conf) = get_config(&base.join(target)) {
             for initc in conf.init {
-                let out = std::process::Command::new(initc.command)
+                match std::process::Command::new(initc.command)
                     .args(initc.args)
-                    .output()?;
-                println!("{:?}", out.stdout);
+                    .output()
+                {
+                    Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
+                    Err(e) => println!("Error: {:?}", e),
+                }
             }
         }
     }
