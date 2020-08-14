@@ -3,6 +3,7 @@ use chrono::prelude::*;
 use colored::*;
 use glob::glob;
 use serde_derive::Deserialize;
+use std::env::consts;
 use std::fs;
 use std::io::{self, BufRead, Error, ErrorKind, Read};
 use std::os::unix;
@@ -196,6 +197,11 @@ fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
     for target in targets {
         if let Some(conf) = get_config(&base.join(target)) {
             for initc in conf.init {
+                if let Some(os) = initc.os {
+                    if !os.starts_with(consts::OS) {
+                        continue;
+                    }
+                }
                 match std::process::Command::new(initc.command)
                     .args(initc.args)
                     .output()
