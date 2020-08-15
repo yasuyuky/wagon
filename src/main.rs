@@ -10,6 +10,8 @@ use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
+const CONFFILE_NAME: &str = ".wagon.toml";
+
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Command {
@@ -90,7 +92,7 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
 }
 
 fn get_config(base: &Path) -> Option<Config> {
-    let confpath = base.join(Path::new(".wagon.toml"));
+    let confpath = base.join(Path::new(CONFFILE_NAME));
     Config::from_path(&confpath).ok()
 }
 
