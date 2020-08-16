@@ -10,6 +10,8 @@ use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
+const CONFFILE_NAME: &str = ".wagon.toml";
+
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Command {
@@ -24,6 +26,8 @@ enum Command {
     List { target: Vec<PathBuf> },
     /// Init
     Init { target: Vec<PathBuf> },
+    /// Diff
+    Diff { target: Vec<PathBuf> },
 }
 
 struct Link {
@@ -90,7 +94,7 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
 }
 
 fn get_config(base: &Path) -> Option<Config> {
-    let confpath = base.join(Path::new(".wagon.toml"));
+    let confpath = base.join(Path::new(CONFFILE_NAME));
     Config::from_path(&confpath).ok()
 }
 
@@ -215,6 +219,43 @@ fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
+fn read_content(path: &Path) -> Result<(Vec<u8>, String)> {
+    let mut f = fs::File::open(path)?;
+    let meta = f.metadata()?;
+    let mut buf = String::new();
+    let date = format!("{:?}", meta.modified()?);
+    f.read_to_string(&mut buf)?;
+    Ok((buf.into_bytes(), date))
+}
+
+fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
+    let alltargets: Vec<PathBuf> = if targets.is_empty() {
+        let pat = format!("{}/*", base.to_str().unwrap());
+        glob(&pat)?.flatten().collect()
+    } else {
+        targets.iter().map(PathBuf::from).collect()
+    };
+    for ref target in alltargets {
+        for link in list_items(&base.join(target))? {
+            if link.target.exists() {
+                if let Ok(readlink) = fs::read_link(&link.target) {
+                    if readlink == link.source {
+                        println!("{}", &link);
+                    }
+                } else {
+                    let (srcs, srcd) = read_content(&link.source)?;
+                    let (tgts, tgtd) = read_content(&link.target)?;
+                    let diff = difflib::unified_diff(&srcs, &tgts, "src", "dst", &srcd, &tgtd, 3);
+                    for line in &diff {
+                        println!("{:?}", line);
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
@@ -226,6 +267,7 @@ fn main() -> Result<()> {
         Command::Link { target } => link_targets(&base, &target, &backupdir)?,
         Command::List { target } => print_links(&base, &target)?,
         Command::Init { target } => init_targets(&base, &target)?,
+        Command::Diff { target } => print_diffs(&base, &target)?,
     }
     Ok(())
 }
