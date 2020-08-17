@@ -219,13 +219,14 @@ fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn read_content(path: &Path) -> Result<(Vec<u8>, String)> {
+fn read_content(path: &Path) -> Result<(Vec<String>, String, String)> {
     let mut f = fs::File::open(path)?;
     let meta = f.metadata()?;
     let mut buf = String::new();
-    let date = format!("{:?}", meta.modified()?);
+    let date = format!("{}", DateTime::<Local>::from(meta.modified()?));
     f.read_to_string(&mut buf)?;
-    Ok((buf.into_bytes(), date))
+    let ps = path.as_os_str().to_str().unwrap_or_default();
+    Ok((buf.lines().map(String::from).collect(), ps.to_owned(), date))
 }
 
 fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
@@ -240,14 +241,20 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
                     if readlink == link.source {
-                        println!("{}", &link);
+                        println!("{} {}", "LINK".cyan(), &link);
                     }
                 } else {
-                    let (srcs, srcd) = read_content(&link.source)?;
-                    let (tgts, tgtd) = read_content(&link.target)?;
-                    let diff = difflib::unified_diff(&srcs, &tgts, "src", "dst", &srcd, &tgtd, 3);
+                    let (srcs, sp, srcd) = read_content(&link.source)?;
+                    let (tgts, tp, tgtd) = read_content(&link.target)?;
+                    let diff = difflib::unified_diff(&srcs, &tgts, &sp, &tp, &srcd, &tgtd, 3);
                     for line in &diff {
-                        println!("{:?}", line);
+                        if line.starts_with("+") {
+                            println!("{}", line.trim_end().green());
+                        } else if line.starts_with("-") {
+                            println!("{}", line.trim_end().red());
+                        } else {
+                            println!("{}", line.trim_end());
+                        }
                     }
                 }
             }
