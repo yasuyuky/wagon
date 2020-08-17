@@ -219,13 +219,13 @@ fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn read_content(path: &Path) -> Result<(Vec<u8>, String)> {
+fn read_content(path: &Path) -> Result<(Vec<String>, String)> {
     let mut f = fs::File::open(path)?;
     let meta = f.metadata()?;
     let mut buf = String::new();
     let date = format!("{:?}", meta.modified()?);
     f.read_to_string(&mut buf)?;
-    Ok((buf.into_bytes(), date))
+    Ok((buf.lines().map(String::from).collect(), date))
 }
 
 fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
