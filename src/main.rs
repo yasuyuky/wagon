@@ -223,7 +223,7 @@ fn read_content(path: &Path) -> Result<(Vec<String>, String)> {
     let mut f = fs::File::open(path)?;
     let meta = f.metadata()?;
     let mut buf = String::new();
-    let date = format!("{:?}", meta.modified()?);
+    let date = format!("{}", DateTime::<Local>::from(meta.modified()?));
     f.read_to_string(&mut buf)?;
     Ok((buf.lines().map(String::from).collect(), date))
 }
