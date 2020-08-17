@@ -10,7 +10,7 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.32"
-chrono = "0.4.13"
+chrono = "0.4.15"
 colored = "2.0.0"
 dirs = "3.0.1"
 glob = "0.3.0"
