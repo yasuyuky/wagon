@@ -241,7 +241,7 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
                     if readlink == link.source {
-                        println!("{}", &link);
+                        println!("{} {}", "LINK".cyan(), &link);
                     }
                 } else {
                     let (srcs, sp, srcd) = read_content(&link.source)?;
