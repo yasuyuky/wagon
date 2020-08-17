@@ -248,7 +248,13 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                     let (tgts, tp, tgtd) = read_content(&link.target)?;
                     let diff = difflib::unified_diff(&srcs, &tgts, &sp, &tp, &srcd, &tgtd, 3);
                     for line in &diff {
-                        println!("{}", line.trim_end());
+                        if line.starts_with("+") {
+                            println!("{}", line.trim_end().green());
+                        } else if line.starts_with("-") {
+                            println!("{}", line.trim_end().red());
+                        } else {
+                            println!("{}", line.trim_end());
+                        }
                     }
                 }
             }
