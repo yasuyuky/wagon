@@ -54,6 +54,11 @@ struct InitCommand {
     os: Option<String>,
 }
 
+enum Content {
+    Text(Vec<String>),
+    Binary(Vec<u8>),
+}
+
 impl Config {
     pub fn from_path(confpath: &Path) -> Result<Self> {
         let mut file = fs::File::open(confpath)?;
@@ -254,7 +259,10 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                             println!("{}", line.trim_end().red());
                         } else {
                             println!("{}", line.trim_end());
+                                println!("{}", "binary files do not match".red())
+                            }
                         }
+                        _ => println!("file types do not match"),
                     }
                 }
             }
