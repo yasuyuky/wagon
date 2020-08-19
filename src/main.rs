@@ -224,14 +224,25 @@ fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn read_content(path: &Path) -> Result<(Vec<String>, String, String)> {
+fn read_text(f: &mut fs::File) -> Result<Content> {
+    let mut buf = String::new();
+    f.read_to_string(&mut buf)?;
+    let ss = buf.lines().map(String::from).collect();
+    Ok(Content::Text(ss))
+}
+
+fn read_binary(f: &mut fs::File) -> Result<Content> {
+    let mut buf = Vec::new();
+    f.read(&mut buf)?;
+    Ok(Content::Binary(buf))
+}
+
+fn read_content(path: &Path) -> Result<(Content, String, String)> {
     let mut f = fs::File::open(path)?;
     let meta = f.metadata()?;
-    let mut buf = String::new();
     let date = format!("{}", DateTime::<Local>::from(meta.modified()?));
-    f.read_to_string(&mut buf)?;
-    let ps = path.as_os_str().to_str().unwrap_or_default();
-    Ok((buf.lines().map(String::from).collect(), ps.to_owned(), date))
+    let ps = path.as_os_str().to_str().unwrap_or_default().to_owned();
+    Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
 fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
@@ -249,16 +260,23 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                         println!("{} {}", "LINK".cyan(), &link);
                     }
                 } else {
-                    let (srcs, sp, srcd) = read_content(&link.source)?;
-                    let (tgts, tp, tgtd) = read_content(&link.target)?;
-                    let diff = difflib::unified_diff(&srcs, &tgts, &sp, &tp, &srcd, &tgtd, 3);
-                    for line in &diff {
-                        if line.starts_with("+") {
-                            println!("{}", line.trim_end().green());
-                        } else if line.starts_with("-") {
-                            println!("{}", line.trim_end().red());
-                        } else {
-                            println!("{}", line.trim_end());
+                    let (srcc, sp, srcd) = read_content(&link.source)?;
+                    let (tgtc, tp, tgtd) = read_content(&link.target)?;
+                    match (srcc, tgtc) {
+                        (Content::Text(ss), Content::Text(ts)) => {
+                            let diff = difflib::unified_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd, 3);
+                            for line in &diff {
+                                if line.starts_with("+") {
+                                    println!("{}", line.trim_end().green());
+                                } else if line.starts_with("-") {
+                                    println!("{}", line.trim_end().red());
+                                } else {
+                                    println!("{}", line.trim_end());
+                                }
+                            }
+                        }
+                        (Content::Binary(sb), Content::Binary(tb)) => {
+                            if sb != tb {
                                 println!("{}", "binary files do not match".red())
                             }
                         }
