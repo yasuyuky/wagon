@@ -289,6 +289,8 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                         _ => println!("file types do not match"),
                     }
                 }
+            } else {
+                println!("target does not exist");
             }
         }
     }
