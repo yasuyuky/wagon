@@ -254,6 +254,7 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
     };
     for ref target in alltargets {
         for link in list_items(&base.join(target))? {
+            println!("{}", link.target.to_str().unwrap_or_default().yellow());
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
                     if readlink == link.source {
