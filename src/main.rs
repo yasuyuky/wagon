@@ -56,7 +56,7 @@ struct InitCommand {
 
 enum Content {
     Text(Vec<String>),
-    Binary(Vec<u8>),
+    Binary(usize, Vec<u8>),
 }
 
 impl Config {
@@ -233,8 +233,8 @@ fn read_text(f: &mut fs::File) -> Result<Content> {
 
 fn read_binary(f: &mut fs::File) -> Result<Content> {
     let mut buf = Vec::new();
-    f.read(&mut buf)?;
-    Ok(Content::Binary(buf))
+    let size = f.read(&mut buf)?;
+    Ok(Content::Binary(size, buf))
 }
 
 fn read_content(path: &Path) -> Result<(Content, String, String)> {
@@ -275,7 +275,7 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                                 }
                             }
                         }
-                        (Content::Binary(sb), Content::Binary(tb)) => {
+                        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
                             if sb != tb {
                                 println!("{}", "binary files do not match".red())
                             }
