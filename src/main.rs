@@ -277,7 +277,12 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                         }
                         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
                             if sb != tb {
-                                println!("{}", "binary files do not match".red())
+                                println!(
+                                    "{} src size:{}, dst size:{}",
+                                    "binary files do not match.".red(),
+                                    ssz,
+                                    tsz
+                                )
                             }
                         }
                         _ => println!("file types do not match"),
