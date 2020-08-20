@@ -56,7 +56,7 @@ struct InitCommand {
 
 enum Content {
     Text(Vec<String>),
-    Binary(Vec<u8>),
+    Binary(usize, Vec<u8>),
 }
 
 impl Config {
@@ -233,8 +233,8 @@ fn read_text(f: &mut fs::File) -> Result<Content> {
 
 fn read_binary(f: &mut fs::File) -> Result<Content> {
     let mut buf = Vec::new();
-    f.read(&mut buf)?;
-    Ok(Content::Binary(buf))
+    let size = f.read(&mut buf)?;
+    Ok(Content::Binary(size, buf))
 }
 
 fn read_content(path: &Path) -> Result<(Content, String, String)> {
@@ -254,6 +254,7 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
     };
     for ref target in alltargets {
         for link in list_items(&base.join(target))? {
+            println!("{}", link.target.to_str().unwrap_or_default().yellow());
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
                     if readlink == link.source {
@@ -275,14 +276,21 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                                 }
                             }
                         }
-                        (Content::Binary(sb), Content::Binary(tb)) => {
+                        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
                             if sb != tb {
-                                println!("{}", "binary files do not match".red())
+                                println!(
+                                    "{} src size:{}, dst size:{}",
+                                    "binary files do not match.".red(),
+                                    ssz,
+                                    tsz
+                                )
                             }
                         }
                         _ => println!("file types do not match"),
                     }
                 }
+            } else {
+                println!("target does not exist");
             }
         }
     }
