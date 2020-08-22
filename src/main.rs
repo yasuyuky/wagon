@@ -267,9 +267,9 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                         (Content::Text(ss), Content::Text(ts)) => {
                             let diff = difflib::unified_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd, 3);
                             for line in &diff {
-                                if line.starts_with("+") {
+                                if line.starts_with('+') {
                                     println!("{}", line.trim_end().green());
-                                } else if line.starts_with("-") {
+                                } else if line.starts_with('-') {
                                     println!("{}", line.trim_end().red());
                                 } else {
                                     println!("{}", line.trim_end());
