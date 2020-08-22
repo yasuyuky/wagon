@@ -106,7 +106,9 @@ fn get_config(base: &Path) -> Option<Config> {
 fn get_dest(src: &Path) -> Result<PathBuf> {
     match get_config(&src.parent().unwrap()).and_then(|c| c.dest) {
         Some(p) => Ok(p),
-        None => dirs::home_dir().ok_or(anyhow::Error::new(Error::from(ErrorKind::NotFound))),
+        None => {
+            dirs::home_dir().ok_or_else(|| anyhow::Error::new(Error::from(ErrorKind::NotFound)))
+        }
     }
 }
 
@@ -130,7 +132,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
 
 fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(&base.join(target))? {
-        fs::create_dir_all(link.target.parent().unwrap_or(Path::new("/")))?;
+        fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
@@ -156,7 +158,7 @@ fn link_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()
 
 fn copy(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(&base.join(target))? {
-        fs::create_dir_all(link.target.parent().unwrap_or(Path::new("/")))?;
+        fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
             if let Ok(content) = fs::read(&link.target) {
@@ -267,9 +269,9 @@ fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
                         (Content::Text(ss), Content::Text(ts)) => {
                             let diff = difflib::unified_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd, 3);
                             for line in &diff {
-                                if line.starts_with("+") {
+                                if line.starts_with('+') {
                                     println!("{}", line.trim_end().green());
-                                } else if line.starts_with("-") {
+                                } else if line.starts_with('-') {
                                     println!("{}", line.trim_end().red());
                                 } else {
                                     println!("{}", line.trim_end());
