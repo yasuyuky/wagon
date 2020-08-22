@@ -132,7 +132,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
 
 fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(&base.join(target))? {
-        fs::create_dir_all(link.target.parent().unwrap_or(Path::new("/")))?;
+        fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
@@ -158,7 +158,7 @@ fn link_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()
 
 fn copy(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(&base.join(target))? {
-        fs::create_dir_all(link.target.parent().unwrap_or(Path::new("/")))?;
+        fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
             if let Ok(content) = fs::read(&link.target) {
