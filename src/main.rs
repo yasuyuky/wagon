@@ -106,7 +106,9 @@ fn get_config(base: &Path) -> Option<Config> {
 fn get_dest(src: &Path) -> Result<PathBuf> {
     match get_config(&src.parent().unwrap()).and_then(|c| c.dest) {
         Some(p) => Ok(p),
-        None => dirs::home_dir().ok_or(anyhow::Error::new(Error::from(ErrorKind::NotFound))),
+        None => {
+            dirs::home_dir().ok_or_else(|| anyhow::Error::new(Error::from(ErrorKind::NotFound)))
+        }
     }
 }
 
