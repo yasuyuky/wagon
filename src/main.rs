@@ -90,6 +90,15 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     Ok(ignores)
 }
 
+#[test]
+fn test_list_ignores() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/bash");
+    fs::File::create("test/repo/bash/test")?;
+    let ignores = list_ignores(&test_base)?;
+    assert!(ignores.len() > 0);
+    Ok(())
+}
+
 fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     let mut components = path.components();
     components.next();
