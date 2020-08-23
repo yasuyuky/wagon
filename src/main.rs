@@ -17,17 +17,17 @@ const CONFFILE_NAME: &str = ".wagon.toml";
 enum Command {
     /// Copy
     #[structopt(alias = "cp")]
-    Copy { target: Vec<PathBuf> },
+    Copy { dir: Vec<PathBuf> },
     /// Link
     #[structopt(alias = "ln")]
-    Link { target: Vec<PathBuf> },
+    Link { dir: Vec<PathBuf> },
     /// List links
     #[structopt(alias = "ls")]
-    List { target: Vec<PathBuf> },
+    List { dir: Vec<PathBuf> },
     /// Init
-    Init { target: Vec<PathBuf> },
+    Init { dir: Vec<PathBuf> },
     /// Diff
-    Diff { target: Vec<PathBuf> },
+    Diff { dir: Vec<PathBuf> },
 }
 
 struct Link {
@@ -138,8 +138,8 @@ fn test_list_items() -> Result<()> {
     Ok(())
 }
 
-fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base.join(target))? {
+fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
+    for link in list_items(&base.join(dir))? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
@@ -157,15 +157,15 @@ fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn link_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()> {
-    for target in targets {
-        link(base, target, backupdir)?
+fn link_targets(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+    for dir in dirs {
+        link(base, dir, backupdir)?
     }
     Ok(())
 }
 
-fn copy(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base.join(target))? {
+fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
+    for link in list_items(&base.join(dir))? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
@@ -184,22 +184,22 @@ fn copy(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn copy_targets(base: &Path, targets: &[PathBuf], backupdir: &Path) -> Result<()> {
-    for target in targets {
-        copy(base, target, backupdir)?
+fn copy_targets(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+    for dir in dirs {
+        copy(base, dir, backupdir)?
     }
     Ok(())
 }
 
-fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
-    let alltargets: Vec<PathBuf> = if targets.is_empty() {
+fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
         glob(&pat)?.flatten().collect()
     } else {
-        targets.iter().map(PathBuf::from).collect()
+        dirs.iter().map(PathBuf::from).collect()
     };
-    for ref target in alltargets {
-        for link in list_items(&base.join(target))? {
+    for ref dir in alldirs {
+        for link in list_items(&base.join(dir))? {
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
                     if readlink == link.source {
@@ -212,9 +212,9 @@ fn print_links(base: &Path, targets: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn init_targets(base: &Path, targets: &[PathBuf]) -> Result<()> {
-    for target in targets {
-        if let Some(conf) = get_config(&base.join(target)) {
+fn init_targets(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in dirs {
+        if let Some(conf) = get_config(&base.join(dir)) {
             for initc in conf.init {
                 if let Some(os) = initc.os {
                     if !os.starts_with(consts::OS) {
@@ -255,15 +255,15 @@ fn read_content(path: &Path) -> Result<(Content, String, String)> {
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
-fn print_diffs(base: &Path, targets: &[PathBuf]) -> Result<()> {
-    let alltargets: Vec<PathBuf> = if targets.is_empty() {
+fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
         glob(&pat)?.flatten().collect()
     } else {
-        targets.iter().map(PathBuf::from).collect()
+        dirs.iter().map(PathBuf::from).collect()
     };
-    for ref target in alltargets {
-        for link in list_items(&base.join(target))? {
+    for ref dir in alldirs {
+        for link in list_items(&base.join(dir))? {
             println!("{}", link.target.to_str().unwrap_or_default().yellow());
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
@@ -314,11 +314,11 @@ fn main() -> Result<()> {
     let mut backupdir = PathBuf::from(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
-        Command::Copy { target } => copy_targets(&base, &target, &backupdir)?,
-        Command::Link { target } => link_targets(&base, &target, &backupdir)?,
-        Command::List { target } => print_links(&base, &target)?,
-        Command::Init { target } => init_targets(&base, &target)?,
-        Command::Diff { target } => print_diffs(&base, &target)?,
+        Command::Copy { dir } => copy_targets(&base, &dir, &backupdir)?,
+        Command::Link { dir } => link_targets(&base, &dir, &backupdir)?,
+        Command::List { dir } => print_links(&base, &dir)?,
+        Command::Init { dir } => init_targets(&base, &dir)?,
+        Command::Diff { dir } => print_diffs(&base, &dir)?,
     }
     Ok(())
 }
