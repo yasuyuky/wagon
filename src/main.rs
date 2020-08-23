@@ -130,6 +130,14 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
+#[test]
+fn test_list_items() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/bash");
+    let items = list_items(&test_base)?;
+    assert!(items.len() > 0);
+    Ok(())
+}
+
 fn link(base: &Path, target: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(&base.join(target))? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
