@@ -4,8 +4,7 @@ Utility to make dotfiles portable with symbolic links
 
 # Installation
 
-1. Checkout this repository
-2. `cargo build --release && cargo install --path .`
+`cargo install --git https://github.com/yasuyuky/wagon`
 
 # Usage
 
