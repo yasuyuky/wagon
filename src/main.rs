@@ -30,6 +30,7 @@ enum Command {
     Diff { dir: Vec<PathBuf> },
 }
 
+#[derive(Debug)]
 struct Link {
     source: PathBuf,
     target: PathBuf,
@@ -131,7 +132,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
         if !fs::metadata(&src)?.is_file() {
             continue;
         }
-        if ignores.iter().any(|ip| src.starts_with(ip)) {
+        if ignores.iter().any(|ip| src == *ip) {
             continue;
         }
         let f = src.strip_prefix(&base).unwrap();
