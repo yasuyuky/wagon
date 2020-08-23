@@ -85,7 +85,8 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
     for ref path in glob(&ifilespat)?.flatten() {
         for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
-            ignores.extend(glob(&line)?.flatten());
+            let pat = path.parent().unwrap().join(&line);
+            ignores.extend(glob(&pat.as_os_str().to_str().unwrap())?.flatten());
         }
     }
     let mut ifiles = glob(&ifilespat)?.flatten().collect();
