@@ -157,7 +157,7 @@ fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn link_targets(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
         link(base, dir, backupdir)?
     }
@@ -184,7 +184,7 @@ fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn copy_targets(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+fn copy_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
         copy(base, dir, backupdir)?
     }
@@ -212,7 +212,7 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn init_targets(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+fn run_init(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         if let Some(conf) = get_config(&base.join(dir)) {
             for initc in conf.init {
@@ -314,10 +314,10 @@ fn main() -> Result<()> {
     let mut backupdir = PathBuf::from(".backups");
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
-        Command::Copy { dir } => copy_targets(&base, &dir, &backupdir)?,
-        Command::Link { dir } => link_targets(&base, &dir, &backupdir)?,
+        Command::Copy { dir } => copy_dirs(&base, &dir, &backupdir)?,
+        Command::Link { dir } => link_dirs(&base, &dir, &backupdir)?,
         Command::List { dir } => print_links(&base, &dir)?,
-        Command::Init { dir } => init_targets(&base, &dir)?,
+        Command::Init { dir } => run_init(&base, &dir)?,
         Command::Diff { dir } => print_diffs(&base, &dir)?,
     }
     Ok(())
