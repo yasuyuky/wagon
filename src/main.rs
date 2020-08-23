@@ -87,6 +87,8 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
             ignores.extend(glob(&line)?.flatten());
         }
     }
+    let mut ifiles = glob(&ifilespat)?.flatten().collect();
+    ignores.append(&mut ifiles);
     Ok(ignores)
 }
 
