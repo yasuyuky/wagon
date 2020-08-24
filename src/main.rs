@@ -91,6 +91,7 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     }
     let mut ifiles = glob(&ifilespat)?.flatten().collect();
     ignores.append(&mut ifiles);
+    ignores.push(base.join(Path::new(CONFFILE_NAME)));
     Ok(ignores)
 }
 
@@ -99,6 +100,7 @@ fn test_list_ignores() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     fs::File::create("test/repo/bash/test")?;
     let ignores = list_ignores(&test_base)?;
+    println!("ignore: {:?}", ignores);
     assert!(ignores.len() > 0);
     Ok(())
 }
@@ -125,6 +127,15 @@ fn get_dest(src: &Path) -> Result<PathBuf> {
     }
 }
 
+#[test]
+fn test_get_dest() -> Result<()> {
+    let test_src = PathBuf::from("test/repo/bash/.bashrc");
+    let dest = get_dest(&test_src)?;
+    println!("dest: {:?}", dest);
+    assert!(dest == dirs::home_dir().unwrap());
+    Ok(())
+}
+
 fn list_items(base: &Path) -> Result<Vec<Link>> {
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
@@ -147,6 +158,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
 fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let items = list_items(&test_base)?;
+    println!("items: {:?}", items);
     assert!(items.len() > 0);
     Ok(())
 }
