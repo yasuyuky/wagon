@@ -118,6 +118,15 @@ fn get_config(base: &Path) -> Option<Config> {
     Config::from_path(&confpath).ok()
 }
 
+#[test]
+fn test_get_config() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/bash");
+    let config = get_config(&test_base);
+    println!("config: {:?}", config);
+    assert!(config.is_some());
+    Ok(())
+}
+
 fn get_dest(src: &Path) -> Result<PathBuf> {
     match get_config(&src.parent().unwrap()).and_then(|c| c.dest) {
         Some(p) => Ok(p),
