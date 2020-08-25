@@ -45,7 +45,7 @@ impl Link {
 #[derive(Deserialize, Debug)]
 struct Config {
     dest: Option<PathBuf>,
-    init: Vec<InitCommand>,
+    init: Option<Vec<InitCommand>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -249,7 +249,7 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
 fn run_init(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         if let Some(conf) = get_config(&base.join(dir)) {
-            for initc in conf.init {
+            for initc in conf.init.unwrap_or_default() {
                 if let Some(os) = initc.os {
                     if !os.starts_with(consts::OS) {
                         continue;
