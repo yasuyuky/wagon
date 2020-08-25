@@ -45,7 +45,7 @@ impl Link {
 #[derive(Deserialize, Debug)]
 struct Config {
     dest: Option<PathBuf>,
-    init: Vec<InitCommand>,
+    init: Option<Vec<InitCommand>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -116,6 +116,15 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
 fn get_config(base: &Path) -> Option<Config> {
     let confpath = base.join(Path::new(CONFFILE_NAME));
     Config::from_path(&confpath).ok()
+}
+
+#[test]
+fn test_get_config() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/bash");
+    let config = get_config(&test_base);
+    println!("config: {:?}", config);
+    assert!(config.is_some());
+    Ok(())
 }
 
 fn get_dest(src: &Path) -> Result<PathBuf> {
@@ -240,7 +249,7 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
 fn run_init(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         if let Some(conf) = get_config(&base.join(dir)) {
-            for initc in conf.init {
+            for initc in conf.init.unwrap_or_default() {
                 if let Some(os) = initc.os {
                     if !os.starts_with(consts::OS) {
                         continue;
