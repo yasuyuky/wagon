@@ -145,6 +145,15 @@ fn test_get_dest() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_get_dest_home() -> Result<()> {
+    let test_src = PathBuf::from("test/repo/zsh/.zshrc");
+    let dest = get_dest(&test_src)?;
+    println!("dest: {:?}", dest);
+    assert!(dest == dirs::home_dir().unwrap());
+    Ok(())
+}
+
 fn list_items(base: &Path) -> Result<Vec<Link>> {
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
