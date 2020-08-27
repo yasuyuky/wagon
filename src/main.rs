@@ -165,9 +165,9 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
         if ignores.iter().any(|ip| src == *ip) {
             continue;
         }
-        let f = src.strip_prefix(&base).unwrap();
-        let dst = get_dest(&src)?.join(f);
-        items.push(Link::new(src, dst));
+        let f = src.strip_prefix(&base)?;
+        let dst = get_dest(&src)?.canonicalize()?.join(f);
+        items.push(Link::new(src.canonicalize()?, dst));
     }
     Ok(items)
 }
@@ -197,6 +197,19 @@ fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
         println!("{} {}", "LINK:".green(), &link);
         unix::fs::symlink(link.source, link.target)?;
     }
+    Ok(())
+}
+
+#[test]
+fn test_link() -> Result<()> {
+    let test_base = PathBuf::from("test/repo");
+    let dir = &PathBuf::from("bash");
+    let test_backupdir = &PathBuf::from("test/backup");
+    link(&test_base, dir, test_backupdir)?;
+    let link_path = PathBuf::from("test/home/.bashrc");
+    assert!(link_path.exists());
+    fs::remove_file(&link_path)?;
+    assert!(!link_path.exists());
     Ok(())
 }
 
