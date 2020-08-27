@@ -166,8 +166,8 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
             continue;
         }
         let f = src.strip_prefix(&base).unwrap();
-        let dst = get_dest(&src)?.join(f);
-        items.push(Link::new(src, dst));
+        let dst = get_dest(&src)?.canonicalize()?.join(f);
+        items.push(Link::new(src.canonicalize()?, dst));
     }
     Ok(items)
 }
