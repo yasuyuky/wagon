@@ -165,7 +165,7 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
         if ignores.iter().any(|ip| src == *ip) {
             continue;
         }
-        let f = src.strip_prefix(&base).unwrap();
+        let f = src.strip_prefix(&base)?;
         let dst = get_dest(&src)?.canonicalize()?.join(f);
         items.push(Link::new(src.canonicalize()?, dst));
     }
