@@ -200,6 +200,19 @@ fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_link() -> Result<()> {
+    let test_base = PathBuf::from("test/repo");
+    let dir = &PathBuf::from("bash");
+    let test_backupdir = &PathBuf::from("test/backup");
+    link(&test_base, dir, test_backupdir)?;
+    let link_path = PathBuf::from("test/home/.bashrc");
+    assert!(link_path.exists());
+    fs::remove_file(&link_path)?;
+    assert!(!link_path.exists());
+    Ok(())
+}
+
 fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
         link(base, dir, backupdir)?
