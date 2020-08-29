@@ -208,6 +208,7 @@ fn test_link() -> Result<()> {
     link(&test_base, dir, test_backupdir)?;
     let link_path = PathBuf::from("test/home/.bashrc");
     assert!(link_path.exists());
+    assert!(fs::read_link(&link_path).is_ok());
     fs::remove_file(&link_path)?;
     assert!(!link_path.exists());
     Ok(())
