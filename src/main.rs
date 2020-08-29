@@ -240,6 +240,19 @@ fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_copy() -> Result<()> {
+    let test_base = PathBuf::from("test/repo");
+    let dir = &PathBuf::from("bash");
+    let test_backupdir = &PathBuf::from("test/backup");
+    link(&test_base, dir, test_backupdir)?;
+    let copy_path = PathBuf::from("test/home/.bashrc");
+    assert!(copy_path.exists());
+    fs::remove_file(&copy_path)?;
+    assert!(!copy_path.exists());
+    Ok(())
+}
+
 fn copy_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
         copy(base, dir, backupdir)?
