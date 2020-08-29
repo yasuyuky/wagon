@@ -1,11 +1,11 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::prelude::*;
 use colored::*;
 use glob::glob;
 use serde_derive::Deserialize;
 use std::env::consts;
 use std::fs;
-use std::io::{self, BufRead, Error, ErrorKind, Read};
+use std::io::{self, BufRead, Read};
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
@@ -131,7 +131,8 @@ fn get_dest(src: &Path) -> Result<PathBuf> {
     match get_config(&src.parent().unwrap()).and_then(|c| c.dest) {
         Some(p) => Ok(p),
         None => {
-            dirs::home_dir().ok_or_else(|| anyhow::Error::new(Error::from(ErrorKind::NotFound)))
+            let maybe_home = dirs::home_dir();
+            maybe_home.context("cant get home dir")
         }
     }
 }
