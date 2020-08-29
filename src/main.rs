@@ -208,6 +208,7 @@ fn test_link() -> Result<()> {
     link(&test_base, dir, test_backupdir)?;
     let link_path = PathBuf::from("test/home/.bashrc");
     assert!(link_path.exists());
+    assert!(fs::read_link(&link_path).is_ok());
     fs::remove_file(&link_path)?;
     assert!(!link_path.exists());
     Ok(())
@@ -237,6 +238,19 @@ fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
         println!("{} {}", "COPY:".green(), &link);
         fs::copy(link.source, link.target)?;
     }
+    Ok(())
+}
+
+#[test]
+fn test_copy() -> Result<()> {
+    let test_base = PathBuf::from("test/repo");
+    let dir = &PathBuf::from("bash");
+    let test_backupdir = &PathBuf::from("test/backup");
+    link(&test_base, dir, test_backupdir)?;
+    let copy_path = PathBuf::from("test/home/.bashrc");
+    assert!(copy_path.exists());
+    fs::remove_file(&copy_path)?;
+    assert!(!copy_path.exists());
     Ok(())
 }
 
