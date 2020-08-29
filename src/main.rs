@@ -5,7 +5,7 @@ use glob::glob;
 use serde_derive::Deserialize;
 use std::env::consts;
 use std::fs;
-use std::io::{self, BufRead, Error, ErrorKind, Read};
+use std::io::{self, BufRead, Read};
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
