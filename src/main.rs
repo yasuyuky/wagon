@@ -161,6 +161,19 @@ fn test_get_dest_home() -> Result<()> {
     Ok(())
 }
 
+fn list_diritems(base: &Path) -> Result<Vec<Link>> {
+    let mut items = vec![];
+    for src in get_config(&base).and_then(|c| c.dirs).unwrap_or_default() {
+        if !fs::metadata(&src)?.is_dir() {
+            continue;
+        }
+        let f = src.strip_prefix(&base)?;
+        let dst = get_dest(&src)?.canonicalize()?.join(f);
+        items.push(Link::new(src.canonicalize()?, dst, true))
+    }
+    Ok(items)
+}
+
 fn list_items(base: &Path) -> Result<Vec<Link>> {
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
