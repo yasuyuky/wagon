@@ -3,6 +3,7 @@ use chrono::prelude::*;
 use colored::*;
 use glob::glob;
 use serde_derive::Deserialize;
+use std::collections::HashSet;
 use std::env::consts;
 use std::fs;
 use std::io::{self, BufRead, Read};
@@ -174,7 +175,8 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_items(base: &Path) -> Result<Vec<Link>> {
+fn list_items(base: &Path, dirs: &Vec<Link>) -> Result<Vec<Link>> {
+    let dirsrcs: HashSet<PathBuf> = dirs.iter().map(|l| l.source.clone()).collect();
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
     let mut items = vec![];
@@ -183,6 +185,9 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
             continue;
         }
         if ignores.iter().any(|ip| src == *ip) {
+            continue;
+        }
+        if src.canonicalize()?.ancestors().any(|p| dirsrcs.contains(p)) {
             continue;
         }
         let f = src.strip_prefix(&base)?;
@@ -195,14 +200,17 @@ fn list_items(base: &Path) -> Result<Vec<Link>> {
 #[test]
 fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
-    let items = list_items(&test_base)?;
+    let items = list_items(&test_base, &vec![])?;
     println!("items: {:?}", items);
     assert!(items.len() > 0);
     Ok(())
 }
 
 fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base.join(dir))? {
+    let mut diritems = list_diritems(&base.join(dir))?;
+    let mut items = list_items(&base.join(dir), &diritems)?;
+    items.append(&mut diritems);
+    for link in items {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
@@ -242,7 +250,7 @@ fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
 }
 
 fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base.join(dir))? {
+    for link in list_items(&base.join(dir), &vec![])? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
@@ -289,7 +297,7 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         dirs.iter().map(PathBuf::from).collect()
     };
     for ref dir in alldirs {
-        for link in list_items(&base.join(dir))? {
+        for link in list_items(&base.join(dir), &vec![])? {
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
                     if readlink == link.source {
@@ -353,7 +361,7 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         dirs.iter().map(PathBuf::from).collect()
     };
     for ref dir in alldirs {
-        for link in list_items(&base.join(dir))? {
+        for link in list_items(&base.join(dir), &vec![])? {
             println!("{}", link.target.to_str().unwrap_or_default().yellow());
             if link.target.exists() {
                 if let Ok(readlink) = fs::read_link(&link.target) {
