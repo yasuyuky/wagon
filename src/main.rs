@@ -34,11 +34,16 @@ enum Command {
 struct Link {
     source: PathBuf,
     target: PathBuf,
+    is_dir: bool,
 }
 
 impl Link {
-    fn new(source: PathBuf, target: PathBuf) -> Self {
-        Self { source, target }
+    fn new(source: PathBuf, target: PathBuf, is_dir: bool) -> Self {
+        Self {
+            source,
+            target,
+            is_dir,
+        }
     }
 }
 
