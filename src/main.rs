@@ -46,6 +46,7 @@ impl Link {
 struct Config {
     dest: Option<PathBuf>,
     init: Option<Vec<InitCommand>>,
+    dirs: Option<Vec<PathBuf>>,
 }
 
 #[derive(Deserialize, Debug)]
