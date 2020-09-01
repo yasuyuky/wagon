@@ -351,6 +351,19 @@ fn read_content(path: &Path) -> Result<(Content, String, String)> {
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
+fn print_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td: &str) {
+    let diff = difflib::unified_diff(ss, ts, sp, tp, sd, td, 3);
+    for line in &diff {
+        if line.starts_with('+') {
+            println!("{}", line.trim_end().green());
+        } else if line.starts_with('-') {
+            println!("{}", line.trim_end().red());
+        } else {
+            println!("{}", line.trim_end());
+        }
+    }
+}
+
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -371,16 +384,7 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
                     let (tgtc, tp, tgtd) = read_content(&link.target)?;
                     match (srcc, tgtc) {
                         (Content::Text(ss), Content::Text(ts)) => {
-                            let diff = difflib::unified_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd, 3);
-                            for line in &diff {
-                                if line.starts_with('+') {
-                                    println!("{}", line.trim_end().green());
-                                } else if line.starts_with('-') {
-                                    println!("{}", line.trim_end().red());
-                                } else {
-                                    println!("{}", line.trim_end());
-                                }
-                            }
+                            print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
                         }
                         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
                             if sb != tb {
