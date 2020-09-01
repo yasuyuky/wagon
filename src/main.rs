@@ -272,7 +272,7 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
 fn test_copy() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let test_backupdir = &PathBuf::from("test/backup");
-    link(&test_base, test_backupdir)?;
+    copy(&test_base, test_backupdir)?;
     let copy_path = PathBuf::from("test/home/.bashrc");
     assert!(copy_path.exists());
     fs::remove_file(&copy_path)?;
