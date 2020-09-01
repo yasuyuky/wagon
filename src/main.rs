@@ -206,9 +206,9 @@ fn test_list_items() -> Result<()> {
     Ok(())
 }
 
-fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
-    let mut diritems = list_diritems(&base.join(dir))?;
-    let mut items = list_items(&base.join(dir), &diritems)?;
+fn link(base: &Path, backupdir: &Path) -> Result<()> {
+    let mut diritems = list_diritems(&base)?;
+    let mut items = list_items(&base, &diritems)?;
     items.append(&mut diritems);
     for link in items {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
@@ -230,10 +230,9 @@ fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
 
 #[test]
 fn test_link() -> Result<()> {
-    let test_base = PathBuf::from("test/repo");
-    let dir = &PathBuf::from("bash");
+    let test_base = PathBuf::from("test/repo/bash");
     let test_backupdir = &PathBuf::from("test/backup");
-    link(&test_base, dir, test_backupdir)?;
+    link(&test_base, test_backupdir)?;
     let link_path = PathBuf::from("test/home/.bashrc");
     assert!(link_path.exists());
     assert!(fs::read_link(&link_path).is_ok());
@@ -244,7 +243,7 @@ fn test_link() -> Result<()> {
 
 fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
-        link(base, dir, backupdir)?
+        link(&base.join(dir), backupdir)?
     }
     Ok(())
 }
