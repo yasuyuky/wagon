@@ -206,9 +206,9 @@ fn test_list_items() -> Result<()> {
     Ok(())
 }
 
-fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
-    let mut diritems = list_diritems(&base.join(dir))?;
-    let mut items = list_items(&base.join(dir), &diritems)?;
+fn link(base: &Path, backupdir: &Path) -> Result<()> {
+    let mut diritems = list_diritems(&base)?;
+    let mut items = list_items(&base, &diritems)?;
     items.append(&mut diritems);
     for link in items {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
@@ -230,10 +230,9 @@ fn link(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
 
 #[test]
 fn test_link() -> Result<()> {
-    let test_base = PathBuf::from("test/repo");
-    let dir = &PathBuf::from("bash");
+    let test_base = PathBuf::from("test/repo/bash");
     let test_backupdir = &PathBuf::from("test/backup");
-    link(&test_base, dir, test_backupdir)?;
+    link(&test_base, test_backupdir)?;
     let link_path = PathBuf::from("test/home/.bashrc");
     assert!(link_path.exists());
     assert!(fs::read_link(&link_path).is_ok());
@@ -244,13 +243,13 @@ fn test_link() -> Result<()> {
 
 fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
-        link(base, dir, backupdir)?
+        link(&base.join(dir), backupdir)?
     }
     Ok(())
 }
 
-fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base.join(dir), &vec![])? {
+fn copy(base: &Path, backupdir: &Path) -> Result<()> {
+    for link in list_items(&base, &vec![])? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
@@ -271,10 +270,9 @@ fn copy(base: &Path, dir: &Path, backupdir: &Path) -> Result<()> {
 
 #[test]
 fn test_copy() -> Result<()> {
-    let test_base = PathBuf::from("test/repo");
-    let dir = &PathBuf::from("bash");
+    let test_base = PathBuf::from("test/repo/bash");
     let test_backupdir = &PathBuf::from("test/backup");
-    link(&test_base, dir, test_backupdir)?;
+    copy(&test_base, test_backupdir)?;
     let copy_path = PathBuf::from("test/home/.bashrc");
     assert!(copy_path.exists());
     fs::remove_file(&copy_path)?;
@@ -284,7 +282,7 @@ fn test_copy() -> Result<()> {
 
 fn copy_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     for dir in dirs {
-        copy(base, dir, backupdir)?
+        copy(&base.join(dir), backupdir)?
     }
     Ok(())
 }
@@ -353,6 +351,19 @@ fn read_content(path: &Path) -> Result<(Content, String, String)> {
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
+fn print_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td: &str) {
+    let diff = difflib::unified_diff(ss, ts, sp, tp, sd, td, 3);
+    for line in &diff {
+        if line.starts_with('+') {
+            println!("{}", line.trim_end().green());
+        } else if line.starts_with('-') {
+            println!("{}", line.trim_end().red());
+        } else {
+            println!("{}", line.trim_end());
+        }
+    }
+}
+
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -373,16 +384,7 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
                     let (tgtc, tp, tgtd) = read_content(&link.target)?;
                     match (srcc, tgtc) {
                         (Content::Text(ss), Content::Text(ts)) => {
-                            let diff = difflib::unified_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd, 3);
-                            for line in &diff {
-                                if line.starts_with('+') {
-                                    println!("{}", line.trim_end().green());
-                                } else if line.starts_with('-') {
-                                    println!("{}", line.trim_end().red());
-                                } else {
-                                    println!("{}", line.trim_end());
-                                }
-                            }
+                            print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
                         }
                         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
                             if sb != tb {
