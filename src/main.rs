@@ -364,6 +364,17 @@ fn print_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, t
     }
 }
 
+fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
+    if sb != tb {
+        println!(
+            "{} src size:{}, dst size:{}",
+            "binary files do not match.".red(),
+            ssz,
+            tsz
+        )
+    }
+}
+
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -387,14 +398,7 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
                             print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
                         }
                         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-                            if sb != tb {
-                                println!(
-                                    "{} src size:{}, dst size:{}",
-                                    "binary files do not match.".red(),
-                                    ssz,
-                                    tsz
-                                )
-                            }
+                            print_binary_diff(ssz, sb, tsz, tb)
                         }
                         _ => println!("file types do not match"),
                     }
