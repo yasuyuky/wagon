@@ -93,7 +93,7 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
     for ref path in glob(&ifilespat)?.flatten() {
         for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
             let pat = path.parent().unwrap().join(&line);
-            ignores.extend(glob(&pat.as_os_str().to_str().unwrap())?.flatten());
+            ignores.extend(glob(&pat.to_str().unwrap())?.flatten());
         }
     }
     let mut ifiles = glob(&ifilespat)?.flatten().collect();
@@ -347,7 +347,7 @@ fn read_content(path: &Path) -> Result<(Content, String, String)> {
     let mut f = fs::File::open(path)?;
     let meta = f.metadata()?;
     let date = format!("{}", DateTime::<Local>::from(meta.modified()?));
-    let ps = path.as_os_str().to_str().unwrap_or_default().to_owned();
+    let ps = path.to_str().unwrap_or_default().to_owned();
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
@@ -361,6 +361,17 @@ fn print_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, t
         } else {
             println!("{}", line.trim_end());
         }
+    }
+}
+
+fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
+    if sb != tb {
+        println!(
+            "{} src size:{}, dst size:{}",
+            "binary files do not match.".red(),
+            ssz,
+            tsz
+        )
     }
 }
 
@@ -387,14 +398,7 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
                             print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
                         }
                         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-                            if sb != tb {
-                                println!(
-                                    "{} src size:{}, dst size:{}",
-                                    "binary files do not match.".red(),
-                                    ssz,
-                                    tsz
-                                )
-                            }
+                            print_binary_diff(ssz, sb, tsz, tb)
                         }
                         _ => println!("file types do not match"),
                     }
