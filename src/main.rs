@@ -175,11 +175,15 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_items(base: &Path, dirs: &Vec<Link>) -> Result<Vec<Link>> {
-    let dirsrcs: HashSet<PathBuf> = dirs.iter().map(|l| l.source.clone()).collect();
+fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
+    let mut items = vec![];
+    let mut dirsrcs = HashSet::new();
+    for dirlink in dirs {
+        dirsrcs.insert(dirlink.source.clone());
+        items.push(dirlink.clone());
+    }
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
-    let mut items = vec![];
     for src in glob(&pat)?.flatten() {
         if !fs::metadata(&src)?.is_file() {
             continue;
@@ -207,9 +211,8 @@ fn test_list_items() -> Result<()> {
 }
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
-    let mut diritems = list_diritems(&base)?;
-    let mut items = list_items(&base, &diritems)?;
-    items.append(&mut diritems);
+    let diritems = list_diritems(&base)?;
+    let items = list_items(&base, &diritems)?;
     for link in items {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
