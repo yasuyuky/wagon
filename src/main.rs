@@ -287,6 +287,19 @@ fn copy_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
+fn print_link(base: &Path) -> Result<()> {
+    for link in list_items(base, &vec![])? {
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{}", &link);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -295,15 +308,7 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         dirs.iter().map(PathBuf::from).collect()
     };
     for ref dir in alldirs {
-        for link in list_items(&base.join(dir), &vec![])? {
-            if link.target.exists() {
-                if let Ok(readlink) = fs::read_link(&link.target) {
-                    if readlink == link.source {
-                        println!("{}", &link);
-                    }
-                }
-            }
-        }
+        print_link(&base.join(dir))?
     }
     Ok(())
 }
