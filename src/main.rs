@@ -241,9 +241,10 @@ fn test_link() -> Result<()> {
     Ok(())
 }
 
-fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+fn link_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    let backupdir = get_backuppath();
     for dir in dirs {
-        link(&base.join(dir), backupdir)?
+        link(&base.join(dir), &backupdir)?
     }
     Ok(())
 }
@@ -280,9 +281,10 @@ fn test_copy() -> Result<()> {
     Ok(())
 }
 
-fn copy_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    let backupdir = get_backuppath();
     for dir in dirs {
-        copy(&base.join(dir), backupdir)?
+        copy(&base.join(dir), &backupdir)?
     }
     Ok(())
 }
@@ -436,10 +438,9 @@ fn get_backuppath() -> PathBuf {
 fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
-    let backupdir = get_backuppath();
     match command {
-        Command::Copy { dir } => copy_dirs(&base, &dir, &backupdir)?,
-        Command::Link { dir } => link_dirs(&base, &dir, &backupdir)?,
+        Command::Copy { dir } => copy_dirs(&base, &dir)?,
+        Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
         Command::Diff { dir } => print_diffs(&base, &dir)?,
