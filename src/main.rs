@@ -291,7 +291,7 @@ fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
 }
 
 fn print_link(base: &Path) -> Result<()> {
-    for link in list_items(base, &vec![])? {
+    for link in list_items(base, &list_diritems(base)?)? {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
