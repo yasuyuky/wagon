@@ -211,9 +211,7 @@ fn test_list_items() -> Result<()> {
 }
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
-    let diritems = list_diritems(&base)?;
-    let items = list_items(&base, &diritems)?;
-    for link in items {
+    for link in list_items(&base, &list_diritems(&base)?)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
