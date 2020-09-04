@@ -385,6 +385,34 @@ fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
     }
 }
 
+fn print_diff(base: &Path) -> Result<()> {
+    for link in list_items(&base, &vec![])? {
+        println!("{}", link.target.to_str().unwrap_or_default().yellow());
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{} {}", "LINK".cyan(), &link);
+                }
+            } else {
+                let (srcc, sp, srcd) = read_content(&link.source)?;
+                let (tgtc, tp, tgtd) = read_content(&link.target)?;
+                match (srcc, tgtc) {
+                    (Content::Text(ss), Content::Text(ts)) => {
+                        print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
+                    }
+                    (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
+                        print_binary_diff(ssz, sb, tsz, tb)
+                    }
+                    _ => println!("file types do not match"),
+                }
+            }
+        } else {
+            println!("target does not exist");
+        }
+    }
+    Ok(())
+}
+
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -393,30 +421,7 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         dirs.iter().map(PathBuf::from).collect()
     };
     for ref dir in alldirs {
-        for link in list_items(&base.join(dir), &vec![])? {
-            println!("{}", link.target.to_str().unwrap_or_default().yellow());
-            if link.target.exists() {
-                if let Ok(readlink) = fs::read_link(&link.target) {
-                    if readlink == link.source {
-                        println!("{} {}", "LINK".cyan(), &link);
-                    }
-                } else {
-                    let (srcc, sp, srcd) = read_content(&link.source)?;
-                    let (tgtc, tp, tgtd) = read_content(&link.target)?;
-                    match (srcc, tgtc) {
-                        (Content::Text(ss), Content::Text(ts)) => {
-                            print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
-                        }
-                        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-                            print_binary_diff(ssz, sb, tsz, tb)
-                        }
-                        _ => println!("file types do not match"),
-                    }
-                }
-            } else {
-                println!("target does not exist");
-            }
-        }
+        print_diff(&base.join(dir))?
     }
     Ok(())
 }
