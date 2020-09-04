@@ -426,12 +426,17 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
+fn get_backuppath() -> PathBuf {
+    let mut backupdir = PathBuf::from(".backups");
+    let local: DateTime<Local> = Local::now();
+    backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
+    backupdir
+}
+
 fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
-    let local: DateTime<Local> = Local::now();
-    let mut backupdir = PathBuf::from(".backups");
-    backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
+    let backupdir = get_backuppath();
     match command {
         Command::Copy { dir } => copy_dirs(&base, &dir, &backupdir)?,
         Command::Link { dir } => link_dirs(&base, &dir, &backupdir)?,
