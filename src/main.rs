@@ -31,7 +31,7 @@ enum Command {
     Diff { dir: Vec<PathBuf> },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Link {
     source: PathBuf,
     target: PathBuf,
@@ -175,11 +175,15 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_items(base: &Path, dirs: &Vec<Link>) -> Result<Vec<Link>> {
-    let dirsrcs: HashSet<PathBuf> = dirs.iter().map(|l| l.source.clone()).collect();
+fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
+    let mut items = vec![];
+    let mut dirsrcs = HashSet::new();
+    for dirlink in dirs {
+        dirsrcs.insert(dirlink.source.clone());
+        items.push(dirlink.clone());
+    }
     let ignores = list_ignores(&base)?;
     let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
-    let mut items = vec![];
     for src in glob(&pat)?.flatten() {
         if !fs::metadata(&src)?.is_file() {
             continue;
@@ -207,10 +211,7 @@ fn test_list_items() -> Result<()> {
 }
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
-    let mut diritems = list_diritems(&base)?;
-    let mut items = list_items(&base, &diritems)?;
-    items.append(&mut diritems);
-    for link in items {
+    for link in list_items(&base, &list_diritems(&base)?)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
@@ -241,9 +242,10 @@ fn test_link() -> Result<()> {
     Ok(())
 }
 
-fn link_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+fn link_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    let backupdir = get_backuppath();
     for dir in dirs {
-        link(&base.join(dir), backupdir)?
+        link(&base.join(dir), &backupdir)?
     }
     Ok(())
 }
@@ -280,9 +282,23 @@ fn test_copy() -> Result<()> {
     Ok(())
 }
 
-fn copy_dirs(base: &Path, dirs: &[PathBuf], backupdir: &Path) -> Result<()> {
+fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    let backupdir = get_backuppath();
     for dir in dirs {
-        copy(&base.join(dir), backupdir)?
+        copy(&base.join(dir), &backupdir)?
+    }
+    Ok(())
+}
+
+fn print_link(base: &Path) -> Result<()> {
+    for link in list_items(base, &list_diritems(base)?)? {
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{}", &link);
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -295,37 +311,34 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         dirs.iter().map(PathBuf::from).collect()
     };
     for ref dir in alldirs {
-        for link in list_items(&base.join(dir), &vec![])? {
-            if link.target.exists() {
-                if let Ok(readlink) = fs::read_link(&link.target) {
-                    if readlink == link.source {
-                        println!("{}", &link);
-                    }
+        print_link(&base.join(dir))?
+    }
+    Ok(())
+}
+
+fn run_init(base: &Path) -> Result<()> {
+    if let Some(conf) = get_config(base) {
+        for initc in conf.init.unwrap_or_default() {
+            if let Some(os) = initc.os {
+                if !os.starts_with(consts::OS) {
+                    continue;
                 }
+            }
+            match std::process::Command::new(initc.command)
+                .args(initc.args)
+                .output()
+            {
+                Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
+                Err(e) => println!("Error: {:?}", e),
             }
         }
     }
     Ok(())
 }
 
-fn run_init(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+fn run_inits(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
-        if let Some(conf) = get_config(&base.join(dir)) {
-            for initc in conf.init.unwrap_or_default() {
-                if let Some(os) = initc.os {
-                    if !os.starts_with(consts::OS) {
-                        continue;
-                    }
-                }
-                match std::process::Command::new(initc.command)
-                    .args(initc.args)
-                    .output()
-                {
-                    Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
-                    Err(e) => println!("Error: {:?}", e),
-                }
-            }
-        }
+        run_init(&base.join(dir))?
     }
     Ok(())
 }
@@ -375,6 +388,34 @@ fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
     }
 }
 
+fn print_diff(base: &Path) -> Result<()> {
+    for link in list_items(&base, &vec![])? {
+        println!("{}", link.target.to_str().unwrap_or_default().yellow());
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{} {}", "LINK".cyan(), &link);
+                }
+            } else {
+                let (srcc, sp, srcd) = read_content(&link.source)?;
+                let (tgtc, tp, tgtd) = read_content(&link.target)?;
+                match (srcc, tgtc) {
+                    (Content::Text(ss), Content::Text(ts)) => {
+                        print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
+                    }
+                    (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
+                        print_binary_diff(ssz, sb, tsz, tb)
+                    }
+                    _ => println!("file types do not match"),
+                }
+            }
+        } else {
+            println!("target does not exist");
+        }
+    }
+    Ok(())
+}
+
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
         let pat = format!("{}/*", base.to_str().unwrap());
@@ -383,45 +424,26 @@ fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         dirs.iter().map(PathBuf::from).collect()
     };
     for ref dir in alldirs {
-        for link in list_items(&base.join(dir), &vec![])? {
-            println!("{}", link.target.to_str().unwrap_or_default().yellow());
-            if link.target.exists() {
-                if let Ok(readlink) = fs::read_link(&link.target) {
-                    if readlink == link.source {
-                        println!("{} {}", "LINK".cyan(), &link);
-                    }
-                } else {
-                    let (srcc, sp, srcd) = read_content(&link.source)?;
-                    let (tgtc, tp, tgtd) = read_content(&link.target)?;
-                    match (srcc, tgtc) {
-                        (Content::Text(ss), Content::Text(ts)) => {
-                            print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
-                        }
-                        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-                            print_binary_diff(ssz, sb, tsz, tb)
-                        }
-                        _ => println!("file types do not match"),
-                    }
-                }
-            } else {
-                println!("target does not exist");
-            }
-        }
+        print_diff(&base.join(dir))?
     }
     Ok(())
+}
+
+fn get_backuppath() -> PathBuf {
+    let mut backupdir = PathBuf::from(".backups");
+    let local: DateTime<Local> = Local::now();
+    backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
+    backupdir
 }
 
 fn main() -> Result<()> {
     let command = Command::from_args();
     let base = std::env::current_dir().expect("current dir");
-    let local: DateTime<Local> = Local::now();
-    let mut backupdir = PathBuf::from(".backups");
-    backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     match command {
-        Command::Copy { dir } => copy_dirs(&base, &dir, &backupdir)?,
-        Command::Link { dir } => link_dirs(&base, &dir, &backupdir)?,
+        Command::Copy { dir } => copy_dirs(&base, &dir)?,
+        Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
-        Command::Init { dir } => run_init(&base, &dir)?,
+        Command::Init { dir } => run_inits(&base, &dir)?,
         Command::Diff { dir } => print_diffs(&base, &dir)?,
     }
     Ok(())
