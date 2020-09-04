@@ -308,24 +308,29 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn run_init(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    for dir in dirs {
-        if let Some(conf) = get_config(&base.join(dir)) {
-            for initc in conf.init.unwrap_or_default() {
-                if let Some(os) = initc.os {
-                    if !os.starts_with(consts::OS) {
-                        continue;
-                    }
-                }
-                match std::process::Command::new(initc.command)
-                    .args(initc.args)
-                    .output()
-                {
-                    Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
-                    Err(e) => println!("Error: {:?}", e),
+fn run_init(base: &Path) -> Result<()> {
+    if let Some(conf) = get_config(base) {
+        for initc in conf.init.unwrap_or_default() {
+            if let Some(os) = initc.os {
+                if !os.starts_with(consts::OS) {
+                    continue;
                 }
             }
+            match std::process::Command::new(initc.command)
+                .args(initc.args)
+                .output()
+            {
+                Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
+                Err(e) => println!("Error: {:?}", e),
+            }
         }
+    }
+    Ok(())
+}
+
+fn run_inits(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in dirs {
+        run_init(&base.join(dir))?
     }
     Ok(())
 }
@@ -421,7 +426,7 @@ fn main() -> Result<()> {
         Command::Copy { dir } => copy_dirs(&base, &dir, &backupdir)?,
         Command::Link { dir } => link_dirs(&base, &dir, &backupdir)?,
         Command::List { dir } => print_links(&base, &dir)?,
-        Command::Init { dir } => run_init(&base, &dir)?,
+        Command::Init { dir } => run_inits(&base, &dir)?,
         Command::Diff { dir } => print_diffs(&base, &dir)?,
     }
     Ok(())
