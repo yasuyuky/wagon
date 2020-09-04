@@ -31,7 +31,7 @@ enum Command {
     Diff { dir: Vec<PathBuf> },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Link {
     source: PathBuf,
     target: PathBuf,
