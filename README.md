@@ -2,6 +2,8 @@
 
 Utility to make dotfiles portable with symbolic links
 
+[![build](https://github.com/yasuyuky/wagon/workflows/build/badge.svg)](https://github.com/yasuyuky/wagon/actions)
+
 # Installation
 
 `cargo install --git https://github.com/yasuyuky/wagon`
