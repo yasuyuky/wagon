@@ -2,7 +2,9 @@
 
 Utility to make dotfiles portable with symbolic links
 
-[![build](https://github.com/yasuyuky/wagon/workflows/build/badge.svg)](https://github.com/yasuyuky/wagon/actions)
+[![build][badge]](https://github.com/yasuyuky/wagon/actions)
+
+[badge]: https://github.com/yasuyuky/wagon/workflows/build/badge.svg
 
 # Installation
 
