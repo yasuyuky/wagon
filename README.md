@@ -48,6 +48,12 @@ Then execute the following command, and symbolic links to your files will be cre
 wagon link bash git tmux ...
 ```
 
+You can also use the `copy` subcommand to copy files.
+
+```console
+wagon link bash git tmux ...
+```
+
 # Configure
 
 The `.wagon.toml` file controls the behavior of the command.
