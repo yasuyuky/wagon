@@ -47,3 +47,15 @@ Then execute the following command, and symbolic links to your files will be cre
 ```console
 wagon link bash git tmux ...
 ```
+
+# Configure
+
+The `.wagon.toml` file controls the behavior of the command.
+
+## `dest` field
+
+By default, the command links the configuration file under your home. If you want to change this behavior, set the `dest` field.
+
+```toml
+"dest" = "/"
+```
