@@ -78,3 +78,9 @@ command = "brew"
 args = ["install", "direnv"]
 os = "macos"
 ```
+
+For example, you can use the following command to run the initial configuration.
+
+```
+wagon init direnv
+```
