@@ -67,3 +67,14 @@ By default, the command links the configuration file under your home. If you wan
 ```toml
 "dest" = "/"
 ```
+
+## `init` field
+
+The `init` field can be used to initialize the application to use each configuration file.
+
+```toml
+[[init]]
+command = "brew"
+args = ["install", "direnv"]
+os = "macos"
+```
