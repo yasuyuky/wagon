@@ -120,6 +120,14 @@ fn backup(backupdir: &Path, path: &Path) -> Result<()> {
     Ok(fs::rename(path, backup)?)
 }
 
+#[test]
+fn test_backup() -> Result<()> {
+    let backupdir = PathBuf::from("test/backup");
+    let path = PathBuf::from("test/repo/bash/.bashrc");
+    backup(&backupdir, &path)?;
+    Ok(())
+}
+
 fn get_config(base: &Path) -> Option<Config> {
     let confpath = base.join(Path::new(CONFFILE_NAME));
     Config::from_path(&confpath).ok()
