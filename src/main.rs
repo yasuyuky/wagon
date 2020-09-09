@@ -130,7 +130,8 @@ fn test_backup() -> Result<()> {
     components.next();
     let backedup = backupdir.join(components.as_path());
     assert!(backedup.exists());
-    fs::rename(backedup, path)?;
+    fs::rename(&backedup, &path)?;
+    assert!(path.exists());
     Ok(())
 }
 
