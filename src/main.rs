@@ -129,6 +129,7 @@ fn test_backup() -> Result<()> {
     let mut components = path.components();
     components.next();
     let backedup = backupdir.join(components.as_path());
+    assert!(backedup.exists());
     fs::rename(backedup, path)?;
     Ok(())
 }
