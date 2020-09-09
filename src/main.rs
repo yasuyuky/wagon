@@ -125,6 +125,11 @@ fn test_backup() -> Result<()> {
     let backupdir = PathBuf::from("test/backup");
     let path = PathBuf::from("test/repo/bash/.bashrc");
     backup(&backupdir, &path)?;
+    // roll back
+    let mut components = path.components();
+    components.next();
+    let backedup = backupdir.join(components.as_path());
+    fs::rename(backedup, path)?;
     Ok(())
 }
 
