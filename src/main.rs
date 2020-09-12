@@ -180,7 +180,10 @@ fn test_get_dest_home() -> Result<()> {
 fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     let mut items = vec![];
     for d in get_config(&base).and_then(|c| c.dirs).unwrap_or_default() {
-        let full = base.join(&d).canonicalize()?;
+        let full = match base.join(&d).canonicalize() {
+            Ok(p) => p,
+            Err(_) => continue,
+        };
         if !fs::metadata(&full)?.is_dir() {
             continue;
         }
