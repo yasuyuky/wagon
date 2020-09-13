@@ -336,7 +336,7 @@ fn print_link(base: &Path) -> Result<()> {
 
 fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
-        let pat = format!("{}/*", base.to_str().unwrap());
+        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
         glob(&pat)?.flatten().collect()
     } else {
         dirs.iter().map(PathBuf::from).collect()
@@ -449,7 +449,7 @@ fn print_diff(base: &Path) -> Result<()> {
 
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     let alldirs: Vec<PathBuf> = if dirs.is_empty() {
-        let pat = format!("{}/*", base.to_str().unwrap());
+        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
         glob(&pat)?.flatten().collect()
     } else {
         dirs.iter().map(PathBuf::from).collect()
