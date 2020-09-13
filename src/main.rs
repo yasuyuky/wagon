@@ -322,9 +322,13 @@ fn print_link(base: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{}", &link);
+                    println!("{}: {}", "LINKED".cyan(), &link);
                 }
+            } else {
+                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap())
             }
+        } else {
+            println!("{}: {}", "NOLINK".yellow(), &link)
         }
     }
     Ok(())
