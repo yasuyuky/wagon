@@ -193,29 +193,40 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
+fn list_dir(
+    base: &Path,
+    dir: &Path,
+    dirsrcs: &HashSet<PathBuf>,
+    ignores: &Vec<PathBuf>,
+) -> Result<Vec<Link>> {
     let mut items = vec![];
+    let pat = format!("{}/*", dir.to_str().unwrap_or_default());
+    for p in glob(&pat)?.flatten() {
+        if ignores.iter().any(|ip| p == *ip) {
+            continue;
+        }
+        let f = p.strip_prefix(&base)?;
+        let dst = get_dest(&p)?.canonicalize()?.join(f);
+        if fs::metadata(&p)?.is_file() {
+            items.push(Link::new(p.canonicalize()?, dst, false));
+        } else if fs::metadata(&p)?.is_dir() {
+            if dirsrcs.contains(&p) {
+                items.push(Link::new(p.canonicalize()?, dst, true));
+            } else {
+                items.extend(list_dir(base, &p, dirsrcs, ignores)?);
+            }
+        }
+    }
+    Ok(items)
+}
+
+fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
     let mut dirsrcs = HashSet::new();
     for dirlink in dirs {
         dirsrcs.insert(dirlink.source.clone());
-        items.push(dirlink.clone());
     }
     let ignores = list_ignores(&base)?;
-    let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
-    for src in glob(&pat)?.flatten() {
-        if !fs::metadata(&src)?.is_file() {
-            continue;
-        }
-        if ignores.iter().any(|ip| src == *ip) {
-            continue;
-        }
-        if src.canonicalize()?.ancestors().any(|p| dirsrcs.contains(p)) {
-            continue;
-        }
-        let f = src.strip_prefix(&base)?;
-        let dst = get_dest(&src)?.canonicalize()?.join(f);
-        items.push(Link::new(src.canonicalize()?, dst, false));
-    }
+    let items = list_dir(base, base, &dirsrcs, &ignores)?;
     Ok(items)
 }
 
