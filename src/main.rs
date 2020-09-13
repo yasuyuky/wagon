@@ -345,7 +345,9 @@ fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
 
 fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in collect_dirs(base, dirs)? {
-        print_link(&base.join(dir))?
+        if fs::metadata(&dir)?.is_dir() {
+            print_link(&dir)?
+        }
     }
     Ok(())
 }
