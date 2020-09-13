@@ -87,8 +87,8 @@ impl std::fmt::Display for Link {
     }
 }
 
-fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
-    let mut ignores: Vec<PathBuf> = Vec::new();
+fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
+    let mut ignores = HashSet::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
     for ref path in glob(&ifilespat)?.flatten() {
         for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
@@ -96,9 +96,8 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
             ignores.extend(glob(&pat.to_str().unwrap())?.flatten());
         }
     }
-    let mut ifiles = glob(&ifilespat)?.flatten().collect();
-    ignores.append(&mut ifiles);
-    ignores.push(base.join(Path::new(CONFFILE_NAME)));
+    ignores.extend(glob(&ifilespat)?.flatten());
+    ignores.insert(base.join(Path::new(CONFFILE_NAME)));
     Ok(ignores)
 }
 
@@ -193,29 +192,39 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
+struct PathDict {
+    dir: HashSet<PathBuf>,
+    ign: HashSet<PathBuf>,
+}
+
+fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
     let mut items = vec![];
-    let mut dirsrcs = HashSet::new();
-    for dirlink in dirs {
-        dirsrcs.insert(dirlink.source.clone());
-        items.push(dirlink.clone());
+    let pat = format!("{}/*", dir.to_str().unwrap_or_default());
+    for p in glob(&pat)?.flatten() {
+        if pathdict.ign.contains(&p) {
+            continue;
+        }
+        let f = p.strip_prefix(&base)?;
+        let dst = get_dest(&p)?.canonicalize()?.join(f);
+        if fs::metadata(&p)?.is_file() {
+            items.push(Link::new(p.canonicalize()?, dst, false));
+        } else if fs::metadata(&p)?.is_dir() {
+            if pathdict.dir.contains(&p) {
+                items.push(Link::new(p.canonicalize()?, dst, true));
+            } else {
+                items.extend(list_dir(base, &p, pathdict)?);
+            }
+        }
     }
-    let ignores = list_ignores(&base)?;
-    let pat = format!("{}/**/*", base.to_str().unwrap_or_default());
-    for src in glob(&pat)?.flatten() {
-        if !fs::metadata(&src)?.is_file() {
-            continue;
-        }
-        if ignores.iter().any(|ip| src == *ip) {
-            continue;
-        }
-        if src.canonicalize()?.ancestors().any(|p| dirsrcs.contains(p)) {
-            continue;
-        }
-        let f = src.strip_prefix(&base)?;
-        let dst = get_dest(&src)?.canonicalize()?.join(f);
-        items.push(Link::new(src.canonicalize()?, dst, false));
-    }
+    Ok(items)
+}
+
+fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
+    let pathdict = PathDict {
+        dir: dirs.iter().map(|d| d.source.clone()).collect(),
+        ign: list_ignores(&base)?,
+    };
+    let items = list_dir(base, base, &pathdict)?;
     Ok(items)
 }
 
@@ -313,23 +322,33 @@ fn print_link(base: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{}", &link);
+                    println!("{}: {}", "LINKED".cyan(), &link);
                 }
+            } else {
+                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap())
             }
+        } else {
+            println!("{}: {}", "NOLINK".yellow(), &link)
         }
     }
     Ok(())
 }
 
-fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    let alldirs: Vec<PathBuf> = if dirs.is_empty() {
-        let pat = format!("{}/*", base.to_str().unwrap());
-        glob(&pat)?.flatten().collect()
+fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
+    if dirs.is_empty() {
+        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
+        Ok(glob(&pat)?.flatten().collect())
     } else {
-        dirs.iter().map(PathBuf::from).collect()
-    };
-    for ref dir in alldirs {
-        print_link(&base.join(dir))?
+        Ok(dirs.iter().map(PathBuf::from).collect())
+    }
+}
+
+fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in collect_dirs(base, dirs)? {
+        if fs::metadata(&dir)?.is_dir() {
+            println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
+            print_link(&dir)?
+        }
     }
     Ok(())
 }
@@ -435,13 +454,7 @@ fn print_diff(base: &Path) -> Result<()> {
 }
 
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    let alldirs: Vec<PathBuf> = if dirs.is_empty() {
-        let pat = format!("{}/*", base.to_str().unwrap());
-        glob(&pat)?.flatten().collect()
-    } else {
-        dirs.iter().map(PathBuf::from).collect()
-    };
-    for ref dir in alldirs {
+    for ref dir in collect_dirs(base, dirs)? {
         print_diff(&base.join(dir))?
     }
     Ok(())
