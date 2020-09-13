@@ -221,10 +221,7 @@ fn list_dir(
 }
 
 fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
-    let mut dirsrcs = HashSet::new();
-    for dirlink in dirs {
-        dirsrcs.insert(dirlink.source.clone());
-    }
+    let dirsrcs = dirs.iter().map(|d| d.source.clone()).collect();
     let ignores = list_ignores(&base)?;
     let items = list_dir(base, base, &dirsrcs, &ignores)?;
     Ok(items)
