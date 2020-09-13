@@ -334,14 +334,17 @@ fn print_link(base: &Path) -> Result<()> {
     Ok(())
 }
 
-fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    let alldirs: Vec<PathBuf> = if dirs.is_empty() {
+fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
+    if dirs.is_empty() {
         let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
-        glob(&pat)?.flatten().collect()
+        Ok(glob(&pat)?.flatten().collect())
     } else {
-        dirs.iter().map(PathBuf::from).collect()
-    };
-    for ref dir in alldirs {
+        Ok(dirs.iter().map(PathBuf::from).collect())
+    }
+}
+
+fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in collect_dirs(base, dirs)? {
         print_link(&base.join(dir))?
     }
     Ok(())
@@ -448,13 +451,7 @@ fn print_diff(base: &Path) -> Result<()> {
 }
 
 fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    let alldirs: Vec<PathBuf> = if dirs.is_empty() {
-        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
-        glob(&pat)?.flatten().collect()
-    } else {
-        dirs.iter().map(PathBuf::from).collect()
-    };
-    for ref dir in alldirs {
+    for ref dir in collect_dirs(base, dirs)? {
         print_diff(&base.join(dir))?
     }
     Ok(())
