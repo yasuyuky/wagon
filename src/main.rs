@@ -87,8 +87,8 @@ impl std::fmt::Display for Link {
     }
 }
 
-fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
-    let mut ignores: Vec<PathBuf> = Vec::new();
+fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
+    let mut ignores = HashSet::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
     for ref path in glob(&ifilespat)?.flatten() {
         for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
@@ -96,9 +96,8 @@ fn list_ignores(base: &Path) -> Result<Vec<PathBuf>> {
             ignores.extend(glob(&pat.to_str().unwrap())?.flatten());
         }
     }
-    let mut ifiles = glob(&ifilespat)?.flatten().collect();
-    ignores.append(&mut ifiles);
-    ignores.push(base.join(Path::new(CONFFILE_NAME)));
+    ignores.extend(glob(&ifilespat)?.flatten());
+    ignores.insert(base.join(Path::new(CONFFILE_NAME)));
     Ok(ignores)
 }
 
@@ -193,16 +192,16 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_dir(
-    base: &Path,
-    dir: &Path,
-    dirsrcs: &HashSet<PathBuf>,
-    ignores: &Vec<PathBuf>,
-) -> Result<Vec<Link>> {
+struct PathDict {
+    dir: HashSet<PathBuf>,
+    ign: HashSet<PathBuf>,
+}
+
+fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
     let mut items = vec![];
     let pat = format!("{}/*", dir.to_str().unwrap_or_default());
     for p in glob(&pat)?.flatten() {
-        if ignores.iter().any(|ip| p == *ip) {
+        if pathdict.ign.contains(&p) {
             continue;
         }
         let f = p.strip_prefix(&base)?;
@@ -210,10 +209,10 @@ fn list_dir(
         if fs::metadata(&p)?.is_file() {
             items.push(Link::new(p.canonicalize()?, dst, false));
         } else if fs::metadata(&p)?.is_dir() {
-            if dirsrcs.contains(&p) {
+            if pathdict.dir.contains(&p) {
                 items.push(Link::new(p.canonicalize()?, dst, true));
             } else {
-                items.extend(list_dir(base, &p, dirsrcs, ignores)?);
+                items.extend(list_dir(base, &p, pathdict)?);
             }
         }
     }
@@ -221,9 +220,11 @@ fn list_dir(
 }
 
 fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
-    let dirsrcs = dirs.iter().map(|d| d.source.clone()).collect();
-    let ignores = list_ignores(&base)?;
-    let items = list_dir(base, base, &dirsrcs, &ignores)?;
+    let pathdict = PathDict {
+        dir: dirs.iter().map(|d| d.source.clone()).collect(),
+        ign: list_ignores(&base)?,
+    };
+    let items = list_dir(base, base, &pathdict)?;
     Ok(items)
 }
 
