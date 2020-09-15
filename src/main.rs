@@ -325,7 +325,10 @@ fn print_link(base: &Path) -> Result<()> {
                     println!("{}: {}", "LINKED".cyan(), &link);
                 }
             } else {
-                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap())
+                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap());
+                if !link.is_dir {
+                    print_link_diff(&link)?
+                }
             }
         } else {
             println!("{}: {}", "NOLINK".yellow(), &link)
