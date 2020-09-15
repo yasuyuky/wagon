@@ -425,6 +425,17 @@ fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
     }
 }
 
+fn print_link_diff(link: &Link) -> Result<()> {
+    let (srcc, sp, srcd) = read_content(&link.source)?;
+    let (tgtc, tp, tgtd) = read_content(&link.target)?;
+    match (srcc, tgtc) {
+        (Content::Text(ss), Content::Text(ts)) => print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd),
+        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => print_binary_diff(ssz, sb, tsz, tb),
+        _ => println!("file types do not match"),
+    }
+    Ok(())
+}
+
 fn print_diff(base: &Path) -> Result<()> {
     for link in list_items(&base, &vec![])? {
         println!("{}", link.target.to_str().unwrap_or_default().yellow());
@@ -434,17 +445,7 @@ fn print_diff(base: &Path) -> Result<()> {
                     println!("{} {}", "LINK".cyan(), &link);
                 }
             } else {
-                let (srcc, sp, srcd) = read_content(&link.source)?;
-                let (tgtc, tp, tgtd) = read_content(&link.target)?;
-                match (srcc, tgtc) {
-                    (Content::Text(ss), Content::Text(ts)) => {
-                        print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
-                    }
-                    (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-                        print_binary_diff(ssz, sb, tsz, tb)
-                    }
-                    _ => println!("file types do not match"),
-                }
+                print_link_diff(&link)?
             }
         } else {
             println!("target does not exist");
