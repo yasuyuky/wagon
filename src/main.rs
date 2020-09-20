@@ -363,17 +363,20 @@ fn read_content(path: &Path) -> Result<(Content, String, String)> {
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
-fn print_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td: &str) {
-    let diff = difflib::unified_diff(ss, ts, sp, tp, sd, td, 3);
-    for line in &diff {
-        if line.starts_with('+') {
-            println!("{}", line.trim_end().green());
-        } else if line.starts_with('-') {
-            println!("{}", line.trim_end().red());
-        } else {
-            println!("{}", line.trim_end());
-        }
-    }
+fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td: &str) -> String {
+    difflib::unified_diff(ss, ts, sp, tp, sd, td, 3)
+        .iter()
+        .map(|line| {
+            if line.starts_with('+') {
+                format!("{}", line.trim_end().green())
+            } else if line.starts_with('-') {
+                format!("{}", line.trim_end().red())
+            } else {
+                format!("{}", line.trim_end())
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 
 fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
@@ -391,7 +394,9 @@ fn print_content_diff(link: &Link) -> Result<()> {
     let (srcc, sp, srcd) = read_content(&link.source)?;
     let (tgtc, tp, tgtd) = read_content(&link.target)?;
     match (srcc, tgtc) {
-        (Content::Text(ss), Content::Text(ts)) => print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd),
+        (Content::Text(ss), Content::Text(ts)) => {
+            println!("{}", get_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd))
+        }
         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => print_binary_diff(ssz, sb, tsz, tb),
         _ => println!("file types do not match"),
     }
