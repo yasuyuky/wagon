@@ -27,8 +27,6 @@ enum Command {
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
-    /// Diff
-    Diff { dir: Vec<PathBuf> },
 }
 
 #[derive(Debug, Clone)]
@@ -439,31 +437,6 @@ fn print_content_diff(link: &Link) -> Result<()> {
     Ok(())
 }
 
-fn print_diff(base: &Path) -> Result<()> {
-    for link in list_items(&base, &vec![])? {
-        println!("{}", link.target.to_str().unwrap_or_default().yellow());
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    println!("{} {}", "LINK".cyan(), &link);
-                }
-            } else {
-                print_content_diff(&link)?
-            }
-        } else {
-            println!("target does not exist");
-        }
-    }
-    Ok(())
-}
-
-fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    for ref dir in collect_dirs(base, dirs)? {
-        print_diff(&base.join(dir))?
-    }
-    Ok(())
-}
-
 fn get_backuppath() -> PathBuf {
     let mut backupdir = PathBuf::from(".backups");
     let local: DateTime<Local> = Local::now();
@@ -479,7 +452,6 @@ fn main() -> Result<()> {
         Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
-        Command::Diff { dir } => print_diffs(&base, &dir)?,
     }
     Ok(())
 }
