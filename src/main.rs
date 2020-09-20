@@ -402,24 +402,26 @@ fn show_content_diff(link: &Link) -> Result<String> {
     })
 }
 
-fn print_link(base: &Path) -> Result<()> {
+fn show_link(base: &Path) -> Result<String> {
+    let mut vs = vec![];
     for link in list_items(base, &list_diritems(base)?)? {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{}: {}", "LINKED".cyan(), &link);
+                    vs.push(format!("{}: {}", "LINKED".cyan(), &link))
                 }
             } else {
-                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap());
+                let tgt = &link.target.to_str().unwrap_or_default();
+                vs.push(format!("{}: {}", "EXISTS".magenta(), tgt));
                 if !link.is_dir {
-                    println!("{}", show_content_diff(&link)?)
+                    vs.push(show_content_diff(&link)?)
                 }
             }
         } else {
-            println!("{}: {}", "NOLINK".yellow(), &link)
+            vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
         }
     }
-    Ok(())
+    Ok(vs.join("\n"))
 }
 
 fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
@@ -435,7 +437,7 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in collect_dirs(base, dirs)? {
         if fs::metadata(&dir)?.is_dir() {
             println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
-            print_link(&dir)?
+            println!("{}", show_link(&dir)?)
         }
     }
     Ok(())
