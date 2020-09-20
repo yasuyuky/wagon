@@ -27,8 +27,6 @@ enum Command {
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
-    /// Diff
-    Diff { dir: Vec<PathBuf> },
 }
 
 #[derive(Debug, Clone)]
@@ -317,42 +315,6 @@ fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn print_link(base: &Path) -> Result<()> {
-    for link in list_items(base, &list_diritems(base)?)? {
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    println!("{}: {}", "LINKED".cyan(), &link);
-                }
-            } else {
-                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap())
-            }
-        } else {
-            println!("{}: {}", "NOLINK".yellow(), &link)
-        }
-    }
-    Ok(())
-}
-
-fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
-    if dirs.is_empty() {
-        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
-        Ok(glob(&pat)?.flatten().collect())
-    } else {
-        Ok(dirs.iter().map(PathBuf::from).collect())
-    }
-}
-
-fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    for dir in collect_dirs(base, dirs)? {
-        if fs::metadata(&dir)?.is_dir() {
-            println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
-            print_link(&dir)?
-        }
-    }
-    Ok(())
-}
-
 fn run_init(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base) {
         for initc in conf.init.unwrap_or_default() {
@@ -401,61 +363,82 @@ fn read_content(path: &Path) -> Result<(Content, String, String)> {
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
 
-fn print_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td: &str) {
-    let diff = difflib::unified_diff(ss, ts, sp, tp, sd, td, 3);
-    for line in &diff {
-        if line.starts_with('+') {
-            println!("{}", line.trim_end().green());
-        } else if line.starts_with('-') {
-            println!("{}", line.trim_end().red());
-        } else {
-            println!("{}", line.trim_end());
-        }
-    }
+fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td: &str) -> String {
+    difflib::unified_diff(ss, ts, sp, tp, sd, td, 3)
+        .iter()
+        .map(|line| {
+            if line.starts_with('+') {
+                format!("{}", line.trim_end().green())
+            } else if line.starts_with('-') {
+                format!("{}", line.trim_end().red())
+            } else {
+                format!("{}", line.trim_end())
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 
-fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
+fn check_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) -> String {
     if sb != tb {
-        println!(
+        format!(
             "{} src size:{}, dst size:{}",
             "binary files do not match.".red(),
             ssz,
             tsz
         )
+    } else {
+        String::new()
     }
 }
 
-fn print_diff(base: &Path) -> Result<()> {
-    for link in list_items(&base, &vec![])? {
-        println!("{}", link.target.to_str().unwrap_or_default().yellow());
+fn show_content_diff(link: &Link) -> Result<String> {
+    let (srcc, sp, srcd) = read_content(&link.source)?;
+    let (tgtc, tp, tgtd) = read_content(&link.target)?;
+    Ok(match (srcc, tgtc) {
+        (Content::Text(ss), Content::Text(ts)) => get_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd),
+        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => check_binary_diff(ssz, sb, tsz, tb),
+        _ => "file types do not match".to_owned(),
+    })
+}
+
+fn show_link(base: &Path) -> Result<String> {
+    let mut vs = vec![];
+    for link in list_items(base, &list_diritems(base)?)? {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{} {}", "LINK".cyan(), &link);
+                    vs.push(format!("{}: {}", "LINKED".cyan(), &link))
                 }
             } else {
-                let (srcc, sp, srcd) = read_content(&link.source)?;
-                let (tgtc, tp, tgtd) = read_content(&link.target)?;
-                match (srcc, tgtc) {
-                    (Content::Text(ss), Content::Text(ts)) => {
-                        print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd)
-                    }
-                    (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-                        print_binary_diff(ssz, sb, tsz, tb)
-                    }
-                    _ => println!("file types do not match"),
+                let tgt = &link.target.to_str().unwrap_or_default();
+                vs.push(format!("{}: {}", "EXISTS".magenta(), tgt));
+                if !link.is_dir {
+                    vs.push(show_content_diff(&link)?)
                 }
             }
         } else {
-            println!("target does not exist");
+            vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
         }
     }
-    Ok(())
+    Ok(vs.join("\n"))
 }
 
-fn print_diffs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    for ref dir in collect_dirs(base, dirs)? {
-        print_diff(&base.join(dir))?
+fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
+    if dirs.is_empty() {
+        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
+        Ok(glob(&pat)?.flatten().collect())
+    } else {
+        Ok(dirs.iter().map(PathBuf::from).collect())
+    }
+}
+
+fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in collect_dirs(base, dirs)? {
+        if fs::metadata(&dir)?.is_dir() {
+            println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
+            println!("{}", show_link(&dir)?)
+        }
     }
     Ok(())
 }
@@ -475,7 +458,6 @@ fn main() -> Result<()> {
         Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
-        Command::Diff { dir } => print_diffs(&base, &dir)?,
     }
     Ok(())
 }
