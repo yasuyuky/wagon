@@ -379,14 +379,16 @@ fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td:
         .join("\n")
 }
 
-fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
+fn check_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) -> String {
     if sb != tb {
-        println!(
+        format!(
             "{} src size:{}, dst size:{}",
             "binary files do not match.".red(),
             ssz,
             tsz
         )
+    } else {
+        String::new()
     }
 }
 
@@ -397,7 +399,9 @@ fn print_content_diff(link: &Link) -> Result<()> {
         (Content::Text(ss), Content::Text(ts)) => {
             println!("{}", get_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd))
         }
-        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => print_binary_diff(ssz, sb, tsz, tb),
+        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
+            println!("{}", check_binary_diff(ssz, sb, tsz, tb))
+        }
         _ => println!("file types do not match"),
     }
     Ok(())
