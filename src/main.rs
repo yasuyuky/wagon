@@ -315,45 +315,6 @@ fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-fn print_link(base: &Path) -> Result<()> {
-    for link in list_items(base, &list_diritems(base)?)? {
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    println!("{}: {}", "LINKED".cyan(), &link);
-                }
-            } else {
-                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap());
-                if !link.is_dir {
-                    print_content_diff(&link)?
-                }
-            }
-        } else {
-            println!("{}: {}", "NOLINK".yellow(), &link)
-        }
-    }
-    Ok(())
-}
-
-fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
-    if dirs.is_empty() {
-        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
-        Ok(glob(&pat)?.flatten().collect())
-    } else {
-        Ok(dirs.iter().map(PathBuf::from).collect())
-    }
-}
-
-fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    for dir in collect_dirs(base, dirs)? {
-        if fs::metadata(&dir)?.is_dir() {
-            println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
-            print_link(&dir)?
-        }
-    }
-    Ok(())
-}
-
 fn run_init(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base) {
         for initc in conf.init.unwrap_or_default() {
@@ -433,6 +394,45 @@ fn print_content_diff(link: &Link) -> Result<()> {
         (Content::Text(ss), Content::Text(ts)) => print_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd),
         (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => print_binary_diff(ssz, sb, tsz, tb),
         _ => println!("file types do not match"),
+    }
+    Ok(())
+}
+
+fn print_link(base: &Path) -> Result<()> {
+    for link in list_items(base, &list_diritems(base)?)? {
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{}: {}", "LINKED".cyan(), &link);
+                }
+            } else {
+                println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap());
+                if !link.is_dir {
+                    print_content_diff(&link)?
+                }
+            }
+        } else {
+            println!("{}: {}", "NOLINK".yellow(), &link)
+        }
+    }
+    Ok(())
+}
+
+fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
+    if dirs.is_empty() {
+        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
+        Ok(glob(&pat)?.flatten().collect())
+    } else {
+        Ok(dirs.iter().map(PathBuf::from).collect())
+    }
+}
+
+fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in collect_dirs(base, dirs)? {
+        if fs::metadata(&dir)?.is_dir() {
+            println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
+            print_link(&dir)?
+        }
     }
     Ok(())
 }
