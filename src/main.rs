@@ -392,19 +392,14 @@ fn check_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) -> String
     }
 }
 
-fn print_content_diff(link: &Link) -> Result<()> {
+fn show_content_diff(link: &Link) -> Result<String> {
     let (srcc, sp, srcd) = read_content(&link.source)?;
     let (tgtc, tp, tgtd) = read_content(&link.target)?;
-    match (srcc, tgtc) {
-        (Content::Text(ss), Content::Text(ts)) => {
-            println!("{}", get_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd))
-        }
-        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => {
-            println!("{}", check_binary_diff(ssz, sb, tsz, tb))
-        }
-        _ => println!("file types do not match"),
-    }
-    Ok(())
+    Ok(match (srcc, tgtc) {
+        (Content::Text(ss), Content::Text(ts)) => get_text_diff(&ss, &ts, &sp, &tp, &srcd, &tgtd),
+        (Content::Binary(ssz, sb), Content::Binary(tsz, tb)) => check_binary_diff(ssz, sb, tsz, tb),
+        _ => "file types do not match".to_owned(),
+    })
 }
 
 fn print_link(base: &Path) -> Result<()> {
@@ -417,7 +412,7 @@ fn print_link(base: &Path) -> Result<()> {
             } else {
                 println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap());
                 if !link.is_dir {
-                    print_content_diff(&link)?
+                    println!("{}", show_content_diff(&link)?)
                 }
             }
         } else {
