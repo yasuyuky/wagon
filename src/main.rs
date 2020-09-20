@@ -327,7 +327,7 @@ fn print_link(base: &Path) -> Result<()> {
             } else {
                 println!("{}: {}", "EXISTS".magenta(), &link.target.to_str().unwrap());
                 if !link.is_dir {
-                    print_link_diff(&link)?
+                    print_content_diff(&link)?
                 }
             }
         } else {
@@ -428,7 +428,7 @@ fn print_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) {
     }
 }
 
-fn print_link_diff(link: &Link) -> Result<()> {
+fn print_content_diff(link: &Link) -> Result<()> {
     let (srcc, sp, srcd) = read_content(&link.source)?;
     let (tgtc, tp, tgtd) = read_content(&link.target)?;
     match (srcc, tgtc) {
@@ -448,7 +448,7 @@ fn print_diff(base: &Path) -> Result<()> {
                     println!("{} {}", "LINK".cyan(), &link);
                 }
             } else {
-                print_link_diff(&link)?
+                print_content_diff(&link)?
             }
         } else {
             println!("target does not exist");
