@@ -133,8 +133,16 @@ fn test_backup() -> Result<()> {
 }
 
 fn get_config(base: &Path) -> Option<Config> {
-    let confpath = base.join(Path::new(CONFFILE_NAME));
-    Config::from_path(&confpath).ok()
+    let longest = base.join(Path::new(CONFFILE_NAME));
+    let mut components = longest.components();
+    while let Some(_) = components.next_back() {
+        let confpath = components.as_path().join(Path::new(CONFFILE_NAME));
+        match Config::from_path(&confpath) {
+            Ok(config) => return Some(config),
+            Err(_) => (),
+        }
+    }
+    None
 }
 
 #[test]
