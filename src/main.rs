@@ -343,6 +343,17 @@ fn run_init(base: &Path) -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_run_init() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/bash");
+    run_init(&test_base)?;
+    let file_path = PathBuf::from("testtouch");
+    assert!(file_path.exists());
+    fs::remove_file(&file_path)?;
+    assert!(!file_path.exists());
+    Ok(())
+}
+
 fn run_inits(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         run_init(&base.join(dir))?
