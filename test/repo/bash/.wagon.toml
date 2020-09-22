@@ -1,1 +1,5 @@
 dest = "test/home"
+
+[[init]]
+args = ["testtouch"]
+command = "touch"
