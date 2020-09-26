@@ -139,7 +139,13 @@ fn get_config(base: &Path) -> Option<Config> {
     while let Some(_) = components.next_back() {
         let confpath = components.as_path().join(Path::new(CONFFILE_NAME));
         match Config::from_path(&confpath) {
-            Ok(config) => return Some(config),
+            Ok(config) => {
+                if let Some(os) = &config.os {
+                    if os == consts::OS {
+                        return Some(config);
+                    }
+                }
+            }
             Err(_) => (),
         }
     }
