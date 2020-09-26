@@ -439,7 +439,7 @@ fn show_link(base: &Path) -> Result<String> {
                     vs.push(format!("{}: {}", "LINKED".cyan(), &link))
                 }
             } else {
-                let tgt = &link.target.to_str().unwrap_or_default();
+                let tgt = link.target.to_str().unwrap_or_default();
                 vs.push(format!("{}: {}", "EXISTS".magenta(), tgt));
                 if !link.is_dir {
                     vs.push(show_content_diff(&link)?)
