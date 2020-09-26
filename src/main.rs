@@ -51,6 +51,7 @@ struct Config {
     dest: Option<PathBuf>,
     init: Option<Vec<InitCommand>>,
     dirs: Option<Vec<PathBuf>>,
+    os: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
