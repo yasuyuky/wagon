@@ -96,7 +96,8 @@ fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
         }
     }
     ignores.extend(glob(&ifilespat)?.flatten());
-    ignores.insert(base.join(Path::new(CONFFILE_NAME)));
+    let confpat = format!("{}/{}*", base.to_str().unwrap_or_default(), CONFFILE_NAME);
+    ignores.extend(glob(&confpat)?.flatten());
     Ok(ignores)
 }
 
