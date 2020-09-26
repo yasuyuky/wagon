@@ -133,38 +133,41 @@ fn test_backup() -> Result<()> {
     Ok(())
 }
 
-fn get_config(base: &Path) -> Option<Config> {
+fn get_config(base: &Path) -> Result<Option<Config>> {
     let longest = base.join(Path::new(CONFFILE_NAME));
     let mut components = longest.components();
     while let Some(_) = components.next_back() {
-        let confpath = components.as_path().join(Path::new(CONFFILE_NAME));
-        match Config::from_path(&confpath) {
-            Ok(config) => {
-                if let Some(os) = &config.os {
-                    if os == consts::OS {
-                        return Some(config);
+        let compstr = components.as_path().to_str().unwrap_or_default();
+        let confpat = format!("{}/{}*", compstr, CONFFILE_NAME);
+        for confpath in glob(&confpat)?.flatten() {
+            match Config::from_path(&confpath) {
+                Ok(config) => {
+                    if let Some(os) = &config.os {
+                        if os == consts::OS {
+                            return Ok(Some(config));
+                        }
+                    } else {
+                        return Ok(Some(config));
                     }
-                } else {
-                    return Some(config);
                 }
+                Err(_) => (),
             }
-            Err(_) => (),
         }
     }
-    None
+    Ok(None)
 }
 
 #[test]
 fn test_get_config() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
-    let config = get_config(&test_base);
+    let config = get_config(&test_base)?;
     println!("config: {:?}", config);
     assert!(config.is_some());
     Ok(())
 }
 
 fn get_dest(src: &Path) -> Result<PathBuf> {
-    match get_config(&src.parent().unwrap()).and_then(|c| c.dest) {
+    match get_config(&src.parent().unwrap())?.and_then(|c| c.dest) {
         Some(p) => Ok(p),
         None => {
             let maybe_home = dirs::home_dir();
@@ -193,7 +196,7 @@ fn test_get_dest_home() -> Result<()> {
 
 fn list_diritems(base: &Path) -> Result<Vec<Link>> {
     let mut items = vec![];
-    for d in get_config(&base).and_then(|c| c.dirs).unwrap_or_default() {
+    for d in get_config(&base)?.and_then(|c| c.dirs).unwrap_or_default() {
         let full = match base.join(&d).canonicalize() {
             Ok(p) => p,
             Err(_) => continue,
@@ -333,7 +336,7 @@ fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
 }
 
 fn run_init(base: &Path) -> Result<()> {
-    if let Some(conf) = get_config(base) {
+    if let Some(conf) = get_config(base)? {
         for initc in conf.init.unwrap_or_default() {
             if let Some(os) = initc.os {
                 if !os.starts_with(consts::OS) {
