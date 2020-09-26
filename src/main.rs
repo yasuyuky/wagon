@@ -144,6 +144,8 @@ fn get_config(base: &Path) -> Option<Config> {
                     if os == consts::OS {
                         return Some(config);
                     }
+                } else {
+                    return Some(config);
                 }
             }
             Err(_) => (),
