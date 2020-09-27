@@ -498,7 +498,8 @@ fn main() -> Result<()> {
     if opt.color {
         std::env::set_var("CLICOLOR_FORCE", "1");
     }
-    let base = std::env::current_dir().expect("current dir");
+    let current_dir = std::env::current_dir().expect("current dir");
+    let base = opt.base.unwrap_or(current_dir);
     match command {
         Command::Copy { dir } => copy_dirs(&base, &dir)?,
         Command::Link { dir } => link_dirs(&base, &dir)?,
