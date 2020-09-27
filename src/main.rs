@@ -17,6 +17,8 @@ const CONFFILE_NAME: &str = ".wagon.toml";
 struct Opt {
     #[structopt(long)]
     color: bool,
+    #[structopt(long)]
+    base: Option<PathBuf>,
     #[structopt(subcommand)]
     cmd: Command,
 }
