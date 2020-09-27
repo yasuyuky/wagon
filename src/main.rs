@@ -13,6 +13,14 @@ use structopt::StructOpt;
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
+#[derive(StructOpt)]
+struct Opt {
+    #[structopt(long)]
+    color: bool,
+    #[structopt(subcommand)]
+    cmd: Command,
+}
+
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Command {
