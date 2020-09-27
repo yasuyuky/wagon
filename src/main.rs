@@ -491,7 +491,11 @@ fn get_backuppath() -> PathBuf {
 }
 
 fn main() -> Result<()> {
-    let command = Command::from_args();
+    let opt = Opt::from_args();
+    let command = opt.cmd;
+    if opt.color {
+        std::env::set_var("CLICOLOR_FORCE", "1");
+    }
     let base = std::env::current_dir().expect("current dir");
     match command {
         Command::Copy { dir } => copy_dirs(&base, &dir)?,
