@@ -151,17 +151,14 @@ fn get_config(base: &Path) -> Result<Option<Config>> {
         let compstr = components.as_path().to_str().unwrap_or_default();
         let confpat = format!("{}/{}*", compstr, CONFFILE_NAME);
         for confpath in glob(&confpat)?.flatten() {
-            match Config::from_path(&confpath) {
-                Ok(config) => {
-                    if let Some(os) = &config.os {
-                        if os == consts::OS {
-                            return Ok(Some(config));
-                        }
-                    } else {
+            if let Ok(config) = Config::from_path(&confpath) {
+                if let Some(os) = &config.os {
+                    if os == consts::OS {
                         return Ok(Some(config));
                     }
+                } else {
+                    return Ok(Some(config));
                 }
-                Err(_) => (),
             }
         }
     }
