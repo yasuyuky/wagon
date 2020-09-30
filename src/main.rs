@@ -147,21 +147,18 @@ fn test_backup() -> Result<()> {
 fn get_config(base: &Path) -> Result<Option<Config>> {
     let longest = base.join(Path::new(CONFFILE_NAME));
     let mut components = longest.components();
-    while let Some(_) = components.next_back() {
+    while components.next_back().is_some() {
         let compstr = components.as_path().to_str().unwrap_or_default();
         let confpat = format!("{}/{}*", compstr, CONFFILE_NAME);
         for confpath in glob(&confpat)?.flatten() {
-            match Config::from_path(&confpath) {
-                Ok(config) => {
-                    if let Some(os) = &config.os {
-                        if os == consts::OS {
-                            return Ok(Some(config));
-                        }
-                    } else {
+            if let Ok(config) = Config::from_path(&confpath) {
+                if let Some(os) = &config.os {
+                    if os == consts::OS {
                         return Ok(Some(config));
                     }
+                } else {
+                    return Ok(Some(config));
                 }
-                Err(_) => (),
             }
         }
     }
@@ -307,7 +304,7 @@ fn link_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
 }
 
 fn copy(base: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base, &vec![])? {
+    for link in list_items(&base, &[])? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
@@ -414,7 +411,7 @@ fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td:
             } else if line.starts_with('-') {
                 format!("{}", line.trim_end().red())
             } else {
-                format!("{}", line.trim_end())
+                line.trim_end().to_string()
             }
         })
         .collect::<Vec<String>>()
