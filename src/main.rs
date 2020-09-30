@@ -411,7 +411,7 @@ fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td:
             } else if line.starts_with('-') {
                 format!("{}", line.trim_end().red())
             } else {
-                format!("{}", line.trim_end())
+                line.trim_end().to_string()
             }
         })
         .collect::<Vec<String>>()
