@@ -147,7 +147,7 @@ fn test_backup() -> Result<()> {
 fn get_config(base: &Path) -> Result<Option<Config>> {
     let longest = base.join(Path::new(CONFFILE_NAME));
     let mut components = longest.components();
-    while let Some(_) = components.next_back() {
+    while components.next_back().is_some() {
         let compstr = components.as_path().to_str().unwrap_or_default();
         let confpat = format!("{}/{}*", compstr, CONFFILE_NAME);
         for confpath in glob(&confpat)?.flatten() {
