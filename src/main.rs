@@ -39,6 +39,17 @@ enum Command {
     Init { dir: Vec<PathBuf> },
 }
 
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+enum Shell {
+    Bash,
+    Fish,
+    Zsh,
+    PowerShell,
+    Elvish,
+}
+
 #[derive(Debug, Clone)]
 struct Link {
     source: PathBuf,
