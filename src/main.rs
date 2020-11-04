@@ -37,6 +37,11 @@ enum Command {
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
+    /// Completion
+    Completion {
+        #[structopt(subcommand)]
+        shell: Shell,
+    },
 }
 
 #[allow(clippy::enum_variant_names)]
@@ -513,6 +518,16 @@ fn main() -> Result<()> {
         Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
+        Command::Completion { shell } => {
+            let shell = match shell {
+                Shell::Bash => structopt::clap::Shell::Bash,
+                Shell::Fish => structopt::clap::Shell::Fish,
+                Shell::Zsh => structopt::clap::Shell::Zsh,
+                Shell::PowerShell => structopt::clap::Shell::PowerShell,
+                Shell::Elvish => structopt::clap::Shell::Elvish,
+            };
+            Command::clap().gen_completions_to("wagon", shell, &mut std::io::stdout());
+        }
     }
     Ok(())
 }
