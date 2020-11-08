@@ -262,6 +262,11 @@ fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
 }
 
 fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
+    let dirs = if dirs.is_empty() {
+        vec![]
+    } else {
+        list_diritems(base)?
+    };
     let pathdict = PathDict {
         dir: dirs.iter().map(|d| d.source.clone()).collect(),
         ign: list_ignores(&base)?,
