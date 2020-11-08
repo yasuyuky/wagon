@@ -261,8 +261,8 @@ fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
     Ok(items)
 }
 
-fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
-    let dirs = if dirs.is_empty() {
+fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
+    let dirs = if ignore_dirlink {
         vec![]
     } else {
         list_diritems(base)?
@@ -278,14 +278,14 @@ fn list_items(base: &Path, dirs: &[Link]) -> Result<Vec<Link>> {
 #[test]
 fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
-    let items = list_items(&test_base, &vec![])?;
+    let items = list_items(&test_base, true)?;
     println!("items: {:?}", items);
     assert!(items.len() > 0);
     Ok(())
 }
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base, &list_diritems(&base)?)? {
+    for link in list_items(&base, false)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
@@ -325,7 +325,7 @@ fn link_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
 }
 
 fn copy(base: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base, &[])? {
+    for link in list_items(&base, true)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
@@ -464,7 +464,7 @@ fn show_content_diff(link: &Link) -> Result<String> {
 
 fn show_link(base: &Path) -> Result<String> {
     let mut vs = vec![];
-    for link in list_items(base, &list_diritems(base)?)? {
+    for link in list_items(base, false)? {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
