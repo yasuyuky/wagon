@@ -37,6 +37,8 @@ enum Command {
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
+    /// Pull
+    Pull { dir: PathBuf, target: Vec<PathBuf> },
     /// Completion
     Completion {
         #[structopt(subcommand)]
@@ -510,6 +512,30 @@ fn get_backuppath() -> PathBuf {
     backupdir
 }
 
+fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
+    if let Some(conf) = get_config(&base.join(&dir))? {
+        let dest = conf.dest.unwrap_or(dirs::home_dir().unwrap_or_default());
+        for target in targets {
+            if target.is_file() {
+                let to = dir.join(target.strip_prefix(&dest)?);
+                println!(
+                    "PULL: {} -> {}",
+                    target.to_str().unwrap_or_default(),
+                    to.to_str().unwrap_or_default(),
+                );
+                fs::create_dir_all(to.parent().unwrap_or(dir))?;
+                fs::copy(target, to)?;
+            } else {
+                println!(
+                    "SKIPPED: {} is directory",
+                    target.to_str().unwrap_or_default()
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let opt = Opt::from_args();
     let command = opt.cmd;
@@ -523,6 +549,7 @@ fn main() -> Result<()> {
         Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
+        Command::Pull { dir, target } => pull_files(&base, &dir, &target)?,
         Command::Completion { shell } => {
             let shell = match shell {
                 Shell::Bash => structopt::clap::Shell::Bash,
