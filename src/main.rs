@@ -37,6 +37,8 @@ enum Command {
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
+    /// Pull
+    Pull { dir: PathBuf, target: Vec<PathBuf> },
     /// Completion
     Completion {
         #[structopt(subcommand)]
@@ -547,6 +549,7 @@ fn main() -> Result<()> {
         Command::Link { dir } => link_dirs(&base, &dir)?,
         Command::List { dir } => print_links(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
+        Command::Pull { dir, target } => pull_files(&base, &dir, &target)?,
         Command::Completion { shell } => {
             let shell = match shell {
                 Shell::Bash => structopt::clap::Shell::Bash,
