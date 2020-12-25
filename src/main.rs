@@ -519,7 +519,8 @@ fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
             if target.is_file() {
                 let to = dir.join(target.strip_prefix(&dest)?);
                 println!(
-                    "PULL: {} -> {}",
+                    "{}: {} -> {}",
+                    "PULL".cyan(),
                     target.to_str().unwrap_or_default(),
                     to.to_str().unwrap_or_default(),
                 );
@@ -527,7 +528,8 @@ fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
                 fs::copy(target, to)?;
             } else {
                 println!(
-                    "SKIPPED: {} is directory",
+                    "{}: {} is directory",
+                    "SKIPPED",
                     target.to_str().unwrap_or_default()
                 );
             }
