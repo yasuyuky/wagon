@@ -529,7 +529,7 @@ fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
             } else {
                 println!(
                     "{}: {} is directory",
-                    "SKIPPED",
+                    "SKIPPED".yellow(),
                     target.to_str().unwrap_or_default()
                 );
             }
