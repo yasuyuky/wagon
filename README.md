@@ -8,7 +8,7 @@ Utility to make dotfiles portable with symbolic links
 
 # Installation
 
-`cargo install --git https://github.com/yasuyuky/wagon`
+`cargo install wagon`
 
 # Usage
 
@@ -56,7 +56,7 @@ You can also use the `copy` subcommand to copy files.
 wagon link bash git tmux ...
 ```
 
-# Configure
+# Configuration
 
 The `.wagon.toml` file controls the behavior of the command.
 
