@@ -9,7 +9,7 @@ repository = "https://github.com/yasuyuky/wagon"
 version = "0.1.0"
 
 [dependencies]
-anyhow = "1.0.36"
+anyhow = "1.0.37"
 chrono = "0.4.19"
 colored = "2.0.0"
 dirs = "3.0.1"
