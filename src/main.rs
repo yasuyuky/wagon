@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use chrono::prelude::*;
 use colored::*;
 use glob::glob;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::collections::HashSet;
 use std::env::consts;
 use std::fs;
