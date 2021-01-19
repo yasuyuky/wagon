@@ -2,7 +2,6 @@ use anyhow::{Context, Result};
 use chrono::prelude::*;
 use colored::*;
 use glob::glob;
-use serde::Deserialize;
 use std::collections::HashSet;
 use std::env::consts;
 use std::fs;
@@ -10,6 +9,9 @@ use std::io::{self, BufRead, Read};
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
+
+mod config;
+use config::Config;
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
@@ -74,33 +76,9 @@ impl Link {
     }
 }
 
-#[derive(Deserialize, Debug)]
-struct Config {
-    dest: Option<PathBuf>,
-    init: Option<Vec<InitCommand>>,
-    dirs: Option<Vec<PathBuf>>,
-    os: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
-struct InitCommand {
-    command: String,
-    args: Vec<String>,
-    os: Option<String>,
-}
-
 enum Content {
     Text(Vec<String>),
     Binary(usize, Vec<u8>),
-}
-
-impl Config {
-    pub fn from_path(confpath: &Path) -> Result<Self> {
-        let mut file = fs::File::open(confpath)?;
-        let mut buf = String::new();
-        file.read_to_string(&mut buf)?;
-        Ok(toml::from_str::<Config>(&buf)?)
-    }
 }
 
 impl std::fmt::Display for Link {
