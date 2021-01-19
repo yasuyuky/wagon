@@ -66,6 +66,11 @@ enum Content {
     Binary(usize, Vec<u8>),
 }
 
+struct PathDict {
+    dir: HashSet<PathBuf>,
+    ign: HashSet<PathBuf>,
+}
+
 fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut ignores = HashSet::new();
     let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
@@ -186,11 +191,6 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
         items.push(Link::new(full, dst, true))
     }
     Ok(items)
-}
-
-struct PathDict {
-    dir: HashSet<PathBuf>,
-    ign: HashSet<PathBuf>,
 }
 
 fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
