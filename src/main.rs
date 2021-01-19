@@ -2,7 +2,6 @@ use anyhow::{Context, Result};
 use chrono::prelude::*;
 use colored::*;
 use glob::glob;
-use serde::Deserialize;
 use std::collections::HashSet;
 use std::env::consts;
 use std::fs;
@@ -10,6 +9,11 @@ use std::io::{self, BufRead, Read};
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
+
+mod config;
+mod link;
+use config::Config;
+use link::Link;
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
@@ -57,61 +61,14 @@ enum Shell {
     Elvish,
 }
 
-#[derive(Debug, Clone)]
-struct Link {
-    source: PathBuf,
-    target: PathBuf,
-    is_dir: bool,
-}
-
-impl Link {
-    fn new(source: PathBuf, target: PathBuf, is_dir: bool) -> Self {
-        Self {
-            source,
-            target,
-            is_dir,
-        }
-    }
-}
-
-#[derive(Deserialize, Debug)]
-struct Config {
-    dest: Option<PathBuf>,
-    init: Option<Vec<InitCommand>>,
-    dirs: Option<Vec<PathBuf>>,
-    os: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
-struct InitCommand {
-    command: String,
-    args: Vec<String>,
-    os: Option<String>,
-}
-
 enum Content {
     Text(Vec<String>),
     Binary(usize, Vec<u8>),
 }
 
-impl Config {
-    pub fn from_path(confpath: &Path) -> Result<Self> {
-        let mut file = fs::File::open(confpath)?;
-        let mut buf = String::new();
-        file.read_to_string(&mut buf)?;
-        Ok(toml::from_str::<Config>(&buf)?)
-    }
-}
-
-impl std::fmt::Display for Link {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} -> {}",
-            self.target.to_str().unwrap_or_default(),
-            self.source.to_str().unwrap_or_default()
-        )
-    }
+struct PathDict {
+    dir: HashSet<PathBuf>,
+    ign: HashSet<PathBuf>,
 }
 
 fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
@@ -234,11 +191,6 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
         items.push(Link::new(full, dst, true))
     }
     Ok(items)
-}
-
-struct PathDict {
-    dir: HashSet<PathBuf>,
-    ign: HashSet<PathBuf>,
 }
 
 fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
