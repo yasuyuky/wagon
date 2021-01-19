@@ -11,7 +11,9 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 mod config;
+mod link;
 use config::Config;
+use link::Link;
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
@@ -59,37 +61,9 @@ enum Shell {
     Elvish,
 }
 
-#[derive(Debug, Clone)]
-struct Link {
-    source: PathBuf,
-    target: PathBuf,
-    is_dir: bool,
-}
-
-impl Link {
-    fn new(source: PathBuf, target: PathBuf, is_dir: bool) -> Self {
-        Self {
-            source,
-            target,
-            is_dir,
-        }
-    }
-}
-
 enum Content {
     Text(Vec<String>),
     Binary(usize, Vec<u8>),
-}
-
-impl std::fmt::Display for Link {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} -> {}",
-            self.target.to_str().unwrap_or_default(),
-            self.source.to_str().unwrap_or_default()
-        )
-    }
 }
 
 fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
