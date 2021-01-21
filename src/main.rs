@@ -13,7 +13,7 @@ use structopt::StructOpt;
 mod config;
 mod structs;
 use config::get_config;
-use structs::Link;
+use structs::{Content, Link, PathDict};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
@@ -59,16 +59,6 @@ enum Shell {
     Zsh,
     PowerShell,
     Elvish,
-}
-
-enum Content {
-    Text(Vec<String>),
-    Binary(usize, Vec<u8>),
-}
-
-struct PathDict {
-    dir: HashSet<PathBuf>,
-    ign: HashSet<PathBuf>,
 }
 
 fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
