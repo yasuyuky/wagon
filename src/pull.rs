@@ -1,4 +1,4 @@
-use crate::get_config;
+use crate::config::get_config;
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;

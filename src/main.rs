@@ -12,13 +12,6 @@ mod list;
 mod pull;
 mod show;
 mod structs;
-use config::get_config;
-use copy::copy_dirs;
-use init::run_inits;
-use link::link_dirs;
-use list::list_items;
-use pull::pull_files;
-use show::show_list;
 use structs::{Content, Link, PathDict};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
@@ -98,7 +91,7 @@ fn get_backuppath() -> PathBuf {
 }
 
 fn get_dest(src: &Path) -> Result<PathBuf> {
-    match get_config(&src.parent().unwrap())?.and_then(|c| c.dest) {
+    match config::get_config(&src.parent().unwrap())?.and_then(|c| c.dest) {
         Some(p) => Ok(p),
         None => {
             let maybe_home = dirs::home_dir();
@@ -134,11 +127,11 @@ fn main() -> Result<()> {
     let current_dir = std::env::current_dir().expect("current dir");
     let base = opt.base.unwrap_or(current_dir);
     match command {
-        Command::Copy { dir } => copy_dirs(&base, &dir)?,
-        Command::Link { dir } => link_dirs(&base, &dir)?,
-        Command::List { dir } => show_list(&base, &dir)?,
-        Command::Init { dir } => run_inits(&base, &dir)?,
-        Command::Pull { dir, target } => pull_files(&base, &dir, &target)?,
+        Command::Copy { dir } => copy::copy_dirs(&base, &dir)?,
+        Command::Link { dir } => link::link_dirs(&base, &dir)?,
+        Command::List { dir } => show::show_list(&base, &dir)?,
+        Command::Init { dir } => init::run_inits(&base, &dir)?,
+        Command::Pull { dir, target } => pull::pull_files(&base, &dir, &target)?,
         Command::Completion { shell } => {
             let shell = match shell {
                 Shell::Bash => structopt::clap::Shell::Bash,

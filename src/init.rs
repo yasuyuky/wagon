@@ -1,4 +1,4 @@
-use crate::get_config;
+use crate::config::get_config;
 use anyhow::Result;
 use std::env::consts;
 use std::path::{Path, PathBuf};

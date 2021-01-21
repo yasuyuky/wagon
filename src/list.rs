@@ -1,4 +1,4 @@
-use crate::{get_config, get_dest, Link, PathDict, CONFFILE_NAME};
+use crate::{config::get_config, get_dest, Link, PathDict, CONFFILE_NAME};
 use anyhow::Result;
 use glob::glob;
 use std::collections::HashSet;
