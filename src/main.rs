@@ -88,6 +88,13 @@ fn test_backup() -> Result<()> {
     Ok(())
 }
 
+fn get_backuppath() -> PathBuf {
+    let mut backupdir = PathBuf::from(".backups");
+    let local: DateTime<Local> = Local::now();
+    backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
+    backupdir
+}
+
 fn get_dest(src: &Path) -> Result<PathBuf> {
     match get_config(&src.parent().unwrap())?.and_then(|c| c.dest) {
         Some(p) => Ok(p),
@@ -253,13 +260,6 @@ fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
         }
     }
     Ok(())
-}
-
-fn get_backuppath() -> PathBuf {
-    let mut backupdir = PathBuf::from(".backups");
-    let local: DateTime<Local> = Local::now();
-    backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
-    backupdir
 }
 
 fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {

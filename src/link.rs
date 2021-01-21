@@ -1,4 +1,4 @@
-use crate::{backup, list_items, get_backuppath};
+use crate::{backup, get_backuppath, list_items};
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
