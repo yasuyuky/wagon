@@ -10,14 +10,14 @@ mod copy;
 mod init;
 mod link;
 mod list;
-mod print;
+mod show;
 mod structs;
 use config::get_config;
 use copy::copy_dirs;
 use init::run_inits;
 use link::link_dirs;
 use list::list_items;
-use print::print_links;
+use show::show_list;
 use structs::{Content, Link, PathDict};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
@@ -161,7 +161,7 @@ fn main() -> Result<()> {
     match command {
         Command::Copy { dir } => copy_dirs(&base, &dir)?,
         Command::Link { dir } => link_dirs(&base, &dir)?,
-        Command::List { dir } => print_links(&base, &dir)?,
+        Command::List { dir } => show_list(&base, &dir)?,
         Command::Init { dir } => run_inits(&base, &dir)?,
         Command::Pull { dir, target } => pull_files(&base, &dir, &target)?,
         Command::Completion { shell } => {

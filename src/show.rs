@@ -98,7 +98,7 @@ fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
     }
 }
 
-pub fn print_links(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+pub fn show_list(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in collect_dirs(base, dirs)? {
         if fs::metadata(&dir)?.is_dir() {
             println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
