@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use chrono::prelude::*;
-use colored::*;
 use std::fs;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
@@ -10,6 +9,7 @@ mod copy;
 mod init;
 mod link;
 mod list;
+mod pull;
 mod show;
 mod structs;
 use config::get_config;
@@ -17,6 +17,7 @@ use copy::copy_dirs;
 use init::run_inits;
 use link::link_dirs;
 use list::list_items;
+use pull::pull_files;
 use show::show_list;
 use structs::{Content, Link, PathDict};
 
@@ -121,32 +122,6 @@ fn test_get_dest_home() -> Result<()> {
     let dest = get_dest(&test_src)?;
     println!("dest: {:?}", dest);
     assert!(dest == dirs::home_dir().unwrap());
-    Ok(())
-}
-
-fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
-    if let Some(conf) = get_config(&base.join(&dir))? {
-        let dest = conf.dest.unwrap_or(dirs::home_dir().unwrap_or_default());
-        for target in targets {
-            if target.is_file() {
-                let to = dir.join(target.strip_prefix(&dest)?);
-                println!(
-                    "{}: {} -> {}",
-                    "PULL".cyan(),
-                    target.to_str().unwrap_or_default(),
-                    to.to_str().unwrap_or_default(),
-                );
-                fs::create_dir_all(to.parent().unwrap_or(dir))?;
-                fs::copy(target, to)?;
-            } else {
-                println!(
-                    "{}: {} is directory",
-                    "SKIPPED".yellow(),
-                    target.to_str().unwrap_or_default()
-                );
-            }
-        }
-    }
     Ok(())
 }
 
