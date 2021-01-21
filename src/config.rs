@@ -1,5 +1,8 @@
+use crate::CONFFILE_NAME;
 use anyhow::Result;
+use glob::glob;
 use serde::Deserialize;
+use std::env::consts;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -26,4 +29,34 @@ impl Config {
         file.read_to_string(&mut buf)?;
         Ok(toml::from_str::<Config>(&buf)?)
     }
+}
+
+pub fn get_config(base: &Path) -> Result<Option<Config>> {
+    let longest = base.join(Path::new(CONFFILE_NAME));
+    let mut components = longest.components();
+    while components.next_back().is_some() {
+        let compstr = components.as_path().to_str().unwrap_or_default();
+        let confpat = format!("{}/{}*", compstr, CONFFILE_NAME);
+        for confpath in glob(&confpat)?.flatten() {
+            if let Ok(config) = Config::from_path(&confpath) {
+                if let Some(os) = &config.os {
+                    if os == consts::OS {
+                        return Ok(Some(config));
+                    }
+                } else {
+                    return Ok(Some(config));
+                }
+            }
+        }
+    }
+    Ok(None)
+}
+
+#[test]
+fn test_get_config() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/bash");
+    let config = get_config(&test_base)?;
+    println!("config: {:?}", config);
+    assert!(config.is_some());
+    Ok(())
 }

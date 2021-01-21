@@ -12,7 +12,7 @@ use structopt::StructOpt;
 
 mod config;
 mod link;
-use config::Config;
+use config::get_config;
 use link::Link;
 
 const CONFFILE_NAME: &str = ".wagon.toml";
@@ -116,36 +116,6 @@ fn test_backup() -> Result<()> {
     assert!(backedup.exists());
     fs::rename(&backedup, &path)?;
     assert!(path.exists());
-    Ok(())
-}
-
-fn get_config(base: &Path) -> Result<Option<Config>> {
-    let longest = base.join(Path::new(CONFFILE_NAME));
-    let mut components = longest.components();
-    while components.next_back().is_some() {
-        let compstr = components.as_path().to_str().unwrap_or_default();
-        let confpat = format!("{}/{}*", compstr, CONFFILE_NAME);
-        for confpath in glob(&confpat)?.flatten() {
-            if let Ok(config) = Config::from_path(&confpath) {
-                if let Some(os) = &config.os {
-                    if os == consts::OS {
-                        return Ok(Some(config));
-                    }
-                } else {
-                    return Ok(Some(config));
-                }
-            }
-        }
-    }
-    Ok(None)
-}
-
-#[test]
-fn test_get_config() -> Result<()> {
-    let test_base = PathBuf::from("test/repo/bash");
-    let config = get_config(&test_base)?;
-    println!("config: {:?}", config);
-    assert!(config.is_some());
     Ok(())
 }
 
