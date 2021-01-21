@@ -11,9 +11,9 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 mod config;
-mod link;
+mod structs;
 use config::get_config;
-use link::Link;
+use structs::Link;
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
