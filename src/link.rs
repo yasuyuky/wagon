@@ -59,3 +59,10 @@ pub fn link_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     }
     Ok(())
 }
+
+pub fn unlink_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in dirs {
+        unlink(&base.join(dir))?
+    }
+    Ok(())
+}
