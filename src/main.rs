@@ -35,6 +35,8 @@ enum Command {
     /// Link
     #[structopt(alias = "ln")]
     Link { dir: Vec<PathBuf> },
+    #[structopt(alias = "rm")]
+    Unlink { dir: Vec<PathBuf> },
     /// List links
     #[structopt(alias = "ls")]
     List { dir: Vec<PathBuf> },
@@ -71,6 +73,7 @@ fn main() -> Result<()> {
     match command {
         Command::Copy { dir } => copy::copy_dirs(&base, &dir)?,
         Command::Link { dir } => link::link_dirs(&base, &dir)?,
+        Command::Unlink { dir } => link::unlink_dirs(&base, &dir)?,
         Command::List { dir } => show::show_list(&base, &dir)?,
         Command::Init { dir } => init::run_inits(&base, &dir)?,
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &target)?,
