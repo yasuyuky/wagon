@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
     if let Some(conf) = get_config(&base.join(&dir))? {
-        let dest = conf.dest.unwrap_or(dirs::home_dir().unwrap_or_default());
+        let dest = conf.dest.unwrap_or_else(|| dirs::home_dir().unwrap());
         for target in targets {
             if target.is_file() {
                 let to = dir.join(target.strip_prefix(&dest)?);
