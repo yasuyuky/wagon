@@ -25,6 +25,20 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
+fn unlink(base: &Path) -> Result<()> {
+    for link in list_items(&base, false)? {
+        if link.target.exists() {
+            if let Ok(readlink) = fs::read_link(&link.target) {
+                if readlink == link.source {
+                    println!("{} {} (exists)", "UNLINK:".cyan(), &link);
+                    fs::remove_file(&link.target)?;
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 #[test]
 fn test_link() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
