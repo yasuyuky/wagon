@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2021-03-13
+
 ### Added
 
 - Added unlink command
@@ -21,5 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial Release
 
-[unreleased]: https://github.com/yasuyuky/wagon/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/yasuyuky/wagon/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/yasuyuky/wagon/releases/tag/v0.2.0
 [0.1.0]: https://github.com/yasuyuky/wagon/releases/tag/v0.1.0
