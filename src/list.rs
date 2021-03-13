@@ -31,8 +31,8 @@ fn test_list_ignores() -> Result<()> {
     Ok(())
 }
 
-fn list_diritems(base: &Path) -> Result<Vec<Link>> {
-    let mut items = vec![];
+fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
+    let mut items = HashSet::new();
     for d in get_config(&base)?.and_then(|c| c.dirs).unwrap_or_default() {
         let full = match base.join(&d).canonicalize() {
             Ok(p) => p,
@@ -41,8 +41,7 @@ fn list_diritems(base: &Path) -> Result<Vec<Link>> {
         if !fs::metadata(&full)?.is_dir() {
             continue;
         }
-        let dst = get_dest(&full)?.canonicalize()?.join(&d);
-        items.push(Link::new(full, dst, true))
+        items.insert(base.join(d));
     }
     Ok(items)
 }
@@ -71,12 +70,12 @@ fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
 
 pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
     let dirs = if ignore_dirlink {
-        vec![]
+        HashSet::new()
     } else {
         list_diritems(base)?
     };
     let pathdict = PathDict {
-        dir: dirs.iter().map(|d| d.source.clone()).collect(),
+        dir: dirs,
         ign: list_ignores(&base)?,
     };
     let items = list_dir(base, base, &pathdict)?;
