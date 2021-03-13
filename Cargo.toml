@@ -6,7 +6,7 @@ exclude = [".*"]
 license = "MIT"
 name = "wagon"
 repository = "https://github.com/yasuyuky/wagon"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependencies]
 anyhow = "1.0.38"
