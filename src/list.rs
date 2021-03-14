@@ -46,6 +46,15 @@ fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     Ok(items)
 }
 
+#[test]
+fn test_list_diritems() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/zsh");
+    let diritems = list_diritems(&test_base)?;
+    println!("diritems: {:?}", diritems);
+    assert!(diritems.len() > 0);
+    Ok(())
+}
+
 fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
     let mut items = vec![];
     let pat = format!("{}/*", dir.to_str().unwrap_or_default());
