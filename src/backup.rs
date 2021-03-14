@@ -1,5 +1,6 @@
 use anyhow::Result;
 use chrono::prelude::*;
+use libc::getuid;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -28,6 +29,7 @@ fn test_backup() -> Result<()> {
 
 pub fn get_backuppath() -> PathBuf {
     let mut backupdir = PathBuf::from(".backups");
+    backupdir.push(format!("uid{}", unsafe { getuid() }));
     let local: DateTime<Local> = Local::now();
     backupdir.push(local.format("%Y/%m/%d/%H:%M:%S").to_string());
     backupdir
