@@ -73,7 +73,7 @@ fn show_link(base: &Path) -> Result<String> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    vs.push(format!("{}: {}", "LINKED".cyan(), &link))
+                    vs.push(format!("{}: {}", "LINKING".cyan(), &link))
                 }
             } else {
                 let tgt = link.target.to_str().unwrap_or_default();
