@@ -12,14 +12,14 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{} {} (exists)", "SKIP:".cyan(), &link);
+                    println!("{} {} (exists)", "SKIPPED:".cyan(), &link);
                     continue;
                 }
             }
             println!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
-        println!("{} {}", "LINK:".green(), &link);
+        println!("{} {}", "LINKED:".green(), &link);
         unix::fs::symlink(link.source, link.target)?;
     }
     Ok(())
