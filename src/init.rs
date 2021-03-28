@@ -1,5 +1,6 @@
 use crate::config::get_config;
 use anyhow::Result;
+use colored::Colorize;
 use std::env::consts;
 use std::path::{Path, PathBuf};
 
@@ -11,6 +12,7 @@ fn run_init(base: &Path) -> Result<()> {
                     continue;
                 }
             }
+            println!("{}: {} {}", "COMMAND", initc.command, initc.args.join(" "));
             match std::process::Command::new(initc.command)
                 .args(initc.args)
                 .output()
