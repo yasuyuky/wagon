@@ -12,7 +12,12 @@ fn run_init(base: &Path) -> Result<()> {
                     continue;
                 }
             }
-            println!("{}: {} {}", "COMMAND", initc.command, initc.args.join(" "));
+            println!(
+                "{}: {} {}",
+                "COMMAND".cyan(),
+                initc.command,
+                initc.args.join(" ")
+            );
             match std::process::Command::new(initc.command)
                 .args(initc.args)
                 .output()
