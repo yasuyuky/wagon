@@ -12,6 +12,7 @@ mod list;
 mod pull;
 mod show;
 mod structs;
+mod update;
 use structs::{Content, Link, PathDict};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
