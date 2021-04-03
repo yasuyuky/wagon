@@ -10,13 +10,14 @@ use std::path::{Path, PathBuf};
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub dest: Option<PathBuf>,
-    pub init: Option<Vec<InitCommand>>,
+    pub init: Option<Vec<Command>>,
+    pub update: Option<Vec<Command>>,
     pub dirs: Option<Vec<PathBuf>>,
     pub os: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct InitCommand {
+pub struct Command {
     pub command: String,
     pub args: Vec<String>,
     pub os: Option<String>,
