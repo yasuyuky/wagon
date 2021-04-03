@@ -43,6 +43,8 @@ enum Command {
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
+    /// Update
+    Update { dir: Vec<PathBuf> },
     /// Pull
     Pull { dir: PathBuf, target: Vec<PathBuf> },
     /// Completion
@@ -77,6 +79,7 @@ fn main() -> Result<()> {
         Command::Unlink { dir } => link::unlink_dirs(&base, &dir)?,
         Command::List { dir } => show::show_list(&base, &dir)?,
         Command::Init { dir } => init::run_inits(&base, &dir)?,
+        Command::Update { dir } => update::run_updates(&base, &dir)?,
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &target)?,
         Command::Completion { shell } => {
             let shell = match shell {
