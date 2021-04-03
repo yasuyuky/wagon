@@ -3,3 +3,7 @@ dest = "test/home"
 [[init]]
 args = ["testtouch"]
 command = "touch"
+
+[[update]]
+args = ["testtouch"]
+command = "touch"
