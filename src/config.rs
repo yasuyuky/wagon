@@ -11,6 +11,7 @@ use std::path::{Path, PathBuf};
 pub struct Config {
     pub dest: Option<PathBuf>,
     pub init: Option<Vec<InitCommand>>,
+    pub update: Option<Vec<InitCommand>>,
     pub dirs: Option<Vec<PathBuf>>,
     pub os: Option<String>,
 }
