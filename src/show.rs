@@ -3,6 +3,7 @@ use anyhow::Result;
 use chrono::prelude::*;
 use colored::Colorize;
 use glob::glob;
+use log::info;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -101,8 +102,8 @@ fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
 pub fn show_list(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in collect_dirs(base, dirs)? {
         if fs::metadata(&dir)?.is_dir() {
-            println!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
-            println!("{}", show_link(&dir)?)
+            info!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
+            info!("{}", show_link(&dir)?)
         }
     }
     Ok(())

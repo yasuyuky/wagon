@@ -1,5 +1,6 @@
 use crate::config::get_config;
 use anyhow::Result;
+use log::info;
 use std::env::consts;
 use std::path::{Path, PathBuf};
 
@@ -15,8 +16,8 @@ fn run_update(base: &Path) -> Result<()> {
                 .args(updatec.args)
                 .output()
             {
-                Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
-                Err(e) => println!("Error: {:?}", e),
+                Ok(out) => info!("{}", String::from_utf8(out.stdout)?),
+                Err(e) => info!("Error: {:?}", e),
             }
         }
     }
