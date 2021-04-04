@@ -26,7 +26,7 @@ fn test_list_ignores() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     fs::File::create("test/repo/bash/test")?;
     let ignores = list_ignores(&test_base)?;
-    println!("ignore: {:?}", ignores);
+    log::info!("ignore: {:?}", ignores);
     assert!(ignores.len() > 0);
     Ok(())
 }
@@ -50,7 +50,7 @@ fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
 fn test_list_diritems() -> Result<()> {
     let test_base = PathBuf::from("test/repo/zsh");
     let diritems = list_diritems(&test_base)?;
-    println!("diritems: {:?}", diritems);
+    log::info!("diritems: {:?}", diritems);
     assert!(diritems.len() > 0);
     Ok(())
 }
@@ -95,7 +95,7 @@ pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
 fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let items = list_items(&test_base, true)?;
-    println!("items: {:?}", items);
+    log::info!("items: {:?}", items);
     assert!(items.len() > 0);
     Ok(())
 }

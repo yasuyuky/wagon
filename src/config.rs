@@ -57,7 +57,7 @@ pub fn get_config(base: &Path) -> Result<Option<Config>> {
 fn test_get_config() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let config = get_config(&test_base)?;
-    println!("config: {:?}", config);
+    log::info!("config: {:?}", config);
     assert!(config.is_some());
     Ok(())
 }

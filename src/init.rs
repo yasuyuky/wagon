@@ -1,6 +1,7 @@
 use crate::config::get_config;
 use anyhow::Result;
 use colored::Colorize;
+use log::info;
 use std::env::consts;
 use std::path::{Path, PathBuf};
 
@@ -12,7 +13,7 @@ fn run_init(base: &Path) -> Result<()> {
                     continue;
                 }
             }
-            println!(
+            info!(
                 "{}: {} {}",
                 "COMMAND".cyan(),
                 initc.command,
@@ -22,8 +23,8 @@ fn run_init(base: &Path) -> Result<()> {
                 .args(initc.args)
                 .output()
             {
-                Ok(out) => println!("{}", String::from_utf8(out.stdout)?),
-                Err(e) => println!("Error: {:?}", e),
+                Ok(out) => info!("{}", String::from_utf8(out.stdout)?),
+                Err(e) => info!("Error: {:?}", e),
             }
         }
     }

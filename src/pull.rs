@@ -1,6 +1,7 @@
 use crate::config::get_config;
 use anyhow::Result;
 use colored::Colorize;
+use log::info;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -10,7 +11,7 @@ pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
         for target in targets {
             if target.is_file() {
                 let to = dir.join(target.strip_prefix(&dest)?);
-                println!(
+                info!(
                     "{}: {} -> {}",
                     "PULL".cyan(),
                     target.to_str().unwrap_or_default(),
@@ -19,7 +20,7 @@ pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
                 fs::create_dir_all(to.parent().unwrap_or(dir))?;
                 fs::copy(target, to)?;
             } else {
-                println!(
+                info!(
                     "{}: {} is directory",
                     "SKIPPED".yellow(),
                     target.to_str().unwrap_or_default()

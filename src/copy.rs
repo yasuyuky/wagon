@@ -2,6 +2,7 @@ use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
 use anyhow::Result;
 use colored::Colorize;
+use log::info;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -12,14 +13,14 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
             let content_src = fs::read(&link.source)?;
             if let Ok(content) = fs::read(&link.target) {
                 if content == content_src {
-                    println!("{} {} (exists)", "SKIP:".cyan(), &link);
+                    info!("{} {} (exists)", "SKIP:".cyan(), &link);
                     continue;
                 }
             }
-            println!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            info!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
-        println!("{} {}", "COPY:".green(), &link);
+        info!("{} {}", "COPY:".green(), &link);
         fs::copy(link.source, link.target)?;
     }
     Ok(())

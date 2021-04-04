@@ -2,6 +2,7 @@ use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
 use anyhow::Result;
 use colored::Colorize;
+use log::info;
 use std::fs;
 use std::os::unix;
 use std::path::{Path, PathBuf};
@@ -12,14 +13,14 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{} {} (exists)", "SKIPPED:".cyan(), &link);
+                    info!("{} {} (exists)", "SKIPPED:".cyan(), &link);
                     continue;
                 }
             }
-            println!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            info!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
-        println!("{} {}", "LINKED:".green(), &link);
+        info!("{} {}", "LINKED:".green(), &link);
         unix::fs::symlink(link.source, link.target)?;
     }
     Ok(())
@@ -30,7 +31,7 @@ fn unlink(base: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    println!("{} {} (exists)", "UNLINK:".cyan(), &link);
+                    info!("{} {} (exists)", "UNLINK:".cyan(), &link);
                     fs::remove_file(&link.target)?;
                 }
             }
