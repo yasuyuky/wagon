@@ -84,6 +84,8 @@ impl log::Log for ConsoleLogger {
 }
 
 fn main() -> Result<()> {
+    log::set_logger(&CONSOLE_LOGGER).unwrap_or_default();
+    log::set_max_level(log::LevelFilter::Info);
     let opt = Opt::from_args();
     let command = opt.cmd;
     if opt.color {
