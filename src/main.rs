@@ -9,6 +9,7 @@ mod dest;
 mod init;
 mod link;
 mod list;
+mod logger;
 mod pull;
 mod show;
 mod structs;
@@ -65,26 +66,8 @@ enum Shell {
     Elvish,
 }
 
-static CONSOLE_LOGGER: ConsoleLogger = ConsoleLogger;
-
-struct ConsoleLogger;
-
-impl log::Log for ConsoleLogger {
-    fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() <= log::Level::Info
-    }
-
-    fn log(&self, record: &log::Record) {
-        if self.enabled(record.metadata()) {
-            println!("{}", record.args());
-        }
-    }
-
-    fn flush(&self) {}
-}
-
 fn main() -> Result<()> {
-    log::set_logger(&CONSOLE_LOGGER).unwrap_or_default();
+    log::set_logger(&logger::CONSOLE_LOGGER).unwrap_or_default();
     log::set_max_level(log::LevelFilter::Info);
     let opt = Opt::from_args();
     let command = opt.cmd;
