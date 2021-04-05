@@ -9,6 +9,7 @@ mod dest;
 mod init;
 mod link;
 mod list;
+mod logger;
 mod pull;
 mod show;
 mod structs;
@@ -66,6 +67,8 @@ enum Shell {
 }
 
 fn main() -> Result<()> {
+    log::set_logger(&logger::CONSOLE_LOGGER).unwrap_or_default();
+    log::set_max_level(log::LevelFilter::Info);
     let opt = Opt::from_args();
     let command = opt.cmd;
     if opt.color {
