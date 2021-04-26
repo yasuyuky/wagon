@@ -12,7 +12,7 @@ version = "0.2.0"
 anyhow = "1.0.40"
 chrono = "0.4.19"
 colored = "2.0.0"
-dirs = "3.0.1"
+dirs = "3.0.2"
 glob = "0.3.0"
 serde = { version = "1.0.125", features = ["derive"] }
 structopt = "0.3.21"
