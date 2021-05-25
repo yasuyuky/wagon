@@ -32,7 +32,8 @@ fn cleanup_dir(d: Option<&Path>) -> Result<()> {
         let p_str = p.to_str().unwrap_or_default();
         let ps = glob(&format!("{}/*", p_str))?;
         if ps.collect::<Vec<_>>().is_empty() {
-            fs::remove_dir(p_str)?;
+            fs::remove_dir(p)?;
+            cleanup_dir(p.parent())?;
         }
     }
     Ok(())
