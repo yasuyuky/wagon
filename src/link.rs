@@ -27,6 +27,17 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
+fn cleanup_dir(d: Option<&Path>) -> Result<()> {
+    if let Some(p) = d {
+        let p_str = p.to_str().unwrap_or_default();
+        let ps = glob(&format!("{}/*", p_str))?;
+        if ps.collect::<Vec<_>>().is_empty() {
+            fs::remove_dir(p_str)?;
+        }
+    }
+    Ok(())
+}
+
 fn unlink(base: &Path) -> Result<()> {
     for link in list_items(&base, false)? {
         if link.target.exists() {
@@ -35,11 +46,7 @@ fn unlink(base: &Path) -> Result<()> {
                     info!("{} {} (exists)", "UNLINK:".cyan(), &link);
                     fs::remove_file(&link.target)?;
                     let parent = link.target.parent();
-                    let pd_str = parent.map(|p| p.to_str()).flatten().unwrap_or_default();
-                    let ps = glob(&format!("{}/*", pd_str))?;
-                    if ps.collect::<Vec<_>>().is_empty() {
-                        fs::remove_dir(pd_str)?;
-                    }
+                    cleanup_dir(parent)?;
                 }
             }
         }
