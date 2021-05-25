@@ -46,8 +46,7 @@ fn unlink(base: &Path) -> Result<()> {
                 if readlink == link.source {
                     info!("{} {} (exists)", "UNLINK:".cyan(), &link);
                     fs::remove_file(&link.target)?;
-                    let parent = link.target.parent();
-                    cleanup_dir(parent)?;
+                    cleanup_dir(link.target.parent())?;
                 }
             }
         }
