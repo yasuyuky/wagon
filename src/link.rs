@@ -2,6 +2,7 @@ use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
 use anyhow::Result;
 use colored::Colorize;
+use glob::glob;
 use log::info;
 use std::fs;
 use std::os::unix;
@@ -26,6 +27,18 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
     Ok(())
 }
 
+fn cleanup_dir(d: Option<&Path>) -> Result<()> {
+    if let Some(p) = d {
+        let p_str = p.to_str().unwrap_or_default();
+        let ps = glob(&format!("{}/*", p_str))?;
+        if ps.collect::<Vec<_>>().is_empty() {
+            fs::remove_dir(p)?;
+            cleanup_dir(p.parent())?;
+        }
+    }
+    Ok(())
+}
+
 fn unlink(base: &Path) -> Result<()> {
     for link in list_items(&base, false)? {
         if link.target.exists() {
@@ -33,6 +46,7 @@ fn unlink(base: &Path) -> Result<()> {
                 if readlink == link.source {
                     info!("{} {} (exists)", "UNLINK:".cyan(), &link);
                     fs::remove_file(&link.target)?;
+                    cleanup_dir(link.target.parent())?;
                 }
             }
         }
