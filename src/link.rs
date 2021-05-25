@@ -2,6 +2,7 @@ use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
 use anyhow::Result;
 use colored::Colorize;
+use glob::glob;
 use log::info;
 use std::fs;
 use std::os::unix;
@@ -33,6 +34,12 @@ fn unlink(base: &Path) -> Result<()> {
                 if readlink == link.source {
                     info!("{} {} (exists)", "UNLINK:".cyan(), &link);
                     fs::remove_file(&link.target)?;
+                    let parent = link.target.parent();
+                    let pd_str = parent.map(|p| p.to_str()).flatten().unwrap_or_default();
+                    let ps = glob(&format!("{}/*", pd_str))?;
+                    if ps.collect::<Vec<_>>().is_empty() {
+                        fs::remove_dir(pd_str)?;
+                    }
                 }
             }
         }
