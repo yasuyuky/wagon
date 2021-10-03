@@ -12,7 +12,7 @@ fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
     for ref path in glob(&ifilespat)?.flatten() {
         for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
             let pat = path.parent().unwrap().join(&line);
-            ignores.extend(glob(&pat.to_str().unwrap())?.flatten());
+            ignores.extend(glob(pat.to_str().unwrap())?.flatten());
         }
     }
     ignores.extend(glob(&ifilespat)?.flatten());
@@ -33,7 +33,7 @@ fn test_list_ignores() -> Result<()> {
 
 fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut items = HashSet::new();
-    for d in get_config(&base)?.and_then(|c| c.dirs).unwrap_or_default() {
+    for d in get_config(base)?.and_then(|c| c.dirs).unwrap_or_default() {
         let full = match base.join(&d).canonicalize() {
             Ok(p) => p,
             Err(_) => continue,
@@ -85,7 +85,7 @@ pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
     };
     let pathdict = PathDict {
         dir: dirs,
-        ign: list_ignores(&base)?,
+        ign: list_ignores(base)?,
     };
     let items = list_dir(base, base, &pathdict)?;
     Ok(items)

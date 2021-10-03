@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 pub fn get_dest(src: &Path) -> Result<PathBuf> {
-    match config::get_config(&src.parent().unwrap())?.and_then(|c| c.dest) {
+    match config::get_config(src.parent().unwrap())?.and_then(|c| c.dest) {
         Some(p) => Ok(p),
         None => {
             let maybe_home = dirs::home_dir();

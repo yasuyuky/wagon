@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn copy(base: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base, true)? {
+    for link in list_items(base, true)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
