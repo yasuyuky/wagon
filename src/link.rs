@@ -30,8 +30,8 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
 fn cleanup_dir(d: Option<&Path>) -> Result<()> {
     if let Some(p) = d {
         let p_str = p.to_str().unwrap_or_default();
-        let ps = glob(&format!("{}/*", p_str))?;
-        if ps.collect::<Vec<_>>().is_empty() {
+        let mut ps = glob(&format!("{}/*", p_str))?;
+        if ps.next().is_none() {
             fs::remove_dir(p)?;
             cleanup_dir(p.parent())?;
         }
