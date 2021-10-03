@@ -9,7 +9,7 @@ use std::os::unix;
 use std::path::{Path, PathBuf};
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
-    for link in list_items(&base, false)? {
+    for link in list_items(base, false)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
@@ -40,7 +40,7 @@ fn cleanup_dir(d: Option<&Path>) -> Result<()> {
 }
 
 fn unlink(base: &Path) -> Result<()> {
-    for link in list_items(&base, false)? {
+    for link in list_items(base, false)? {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
