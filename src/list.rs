@@ -62,7 +62,7 @@ fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
         if pathdict.ign.contains(&p) {
             continue;
         }
-        let f = p.strip_prefix(&base)?;
+        let f = p.strip_prefix(&base).unwrap_or(&p);
         let dst = get_dest(&p)?.canonicalize()?.join(f);
         if fs::metadata(&p)?.is_file() {
             items.push(Link::new(p.canonicalize()?, dst, false));
