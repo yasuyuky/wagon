@@ -17,6 +17,6 @@ dirs = "4.0.0"
 glob = "0.3.0"
 libc = "0.2.113"
 log = "0.4.14"
-serde = {version = "1.0.133", features = ["derive"]}
+serde = {version = "1.0.135", features = ["derive"]}
 structopt = "0.3.26"
 toml = "0.5.8"
