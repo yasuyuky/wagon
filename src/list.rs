@@ -1,6 +1,7 @@
 use crate::{config::get_config, dest::get_dest, Link, PathDict, CONFFILE_NAME};
 use anyhow::Result;
 use glob::glob;
+use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
 use std::fs;
 use std::io::{self, BufRead};
@@ -56,23 +57,34 @@ fn test_list_diritems() -> Result<()> {
     Ok(())
 }
 
+fn filter_ignores(e: &DirEntry) -> bool {
+    let p = e.path().file_name().unwrap_or_default().to_string_lossy();
+    !(p == CONFFILE_NAME || p == ".git" || p == ".gitignore")
+}
+
 fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
     let mut items = vec![];
-    let pat = format!("{}/*", dir.to_str().unwrap_or_default());
-    for p in glob(&pat)?.flatten() {
-        if pathdict.ign.contains(&p) {
-            continue;
-        }
-        let f = p.strip_prefix(&base).unwrap_or(&p);
-        let dst = get_dest(&p)?.canonicalize()?.join(f);
-        if fs::metadata(&p)?.is_file() {
-            items.push(Link::new(p.canonicalize()?, dst, false));
-        } else if fs::metadata(&p)?.is_dir() {
-            if pathdict.dir.contains(&p) {
-                items.push(Link::new(p.canonicalize()?, dst, true));
-            } else {
-                items.extend(list_dir(base, &p, pathdict)?);
+    let pat = format!("{}", dir.to_str().unwrap_or_default());
+    for r in WalkBuilder::new(&pat)
+        .standard_filters(true)
+        .hidden(false)
+        .filter_entry(filter_ignores)
+        .build()
+    {
+        match r {
+            Ok(dent) => {
+                let p = PathBuf::from(dent.path());
+                let f = p.strip_prefix(&base).unwrap_or(&p);
+                let dst = get_dest(&p)?.canonicalize()?.join(f);
+                if fs::metadata(&p)?.is_file() {
+                    items.push(Link::new(p.canonicalize()?, dst, false));
+                } else if fs::metadata(&p)?.is_dir() {
+                    if pathdict.dir.contains(&p) {
+                        items.push(Link::new(p.canonicalize()?, dst, true));
+                    }
+                }
             }
+            Err(err) => println!("{err:?}"),
         }
     }
     Ok(items)
