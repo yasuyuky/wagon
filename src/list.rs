@@ -37,7 +37,7 @@ fn filter_ignores(e: &DirEntry) -> bool {
 fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
     let mut items = vec![];
     let pat = format!("{}", dir.to_str().unwrap_or_default());
-    for r in WalkBuilder::new(&pat)
+    'walk: for r in WalkBuilder::new(&pat)
         .standard_filters(true)
         .hidden(false)
         .filter_entry(filter_ignores)
@@ -49,6 +49,11 @@ fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec
                 let f = p.strip_prefix(&base).unwrap_or(&p);
                 let dst = get_dest(&p)?.canonicalize()?.join(f);
                 if fs::metadata(&p)?.is_file() {
+                    for dir_item in dir_items {
+                        if p.starts_with(dir_item) {
+                            continue 'walk;
+                        }
+                    }
                     items.push(Link::new(p.canonicalize()?, dst, false));
                 } else if fs::metadata(&p)?.is_dir() {
                     if dir_items.contains(&p) {
