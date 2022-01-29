@@ -1,4 +1,4 @@
-use crate::{config::get_config, dest::get_dest, Link, CONFFILE_NAME};
+use crate::{config::get_config, dest::get_dest, Link, CONFFILE_NAME, IGNOREFILE_NAME};
 use anyhow::Result;
 use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
@@ -40,6 +40,7 @@ fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec
     'walk: for r in WalkBuilder::new(&pat)
         .standard_filters(true)
         .hidden(false)
+        .add_custom_ignore_filename(IGNOREFILE_NAME)
         .filter_entry(filter_ignores)
         .build()
     {

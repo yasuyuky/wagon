@@ -17,6 +17,7 @@ mod update;
 use structs::{Content, Link};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
+const IGNOREFILE_NAME: &str = ".wagonignore";
 
 #[derive(StructOpt)]
 struct Opt {
