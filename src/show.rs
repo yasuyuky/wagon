@@ -102,7 +102,9 @@ fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
 pub fn show_list(base: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in collect_dirs(base, dirs)? {
         if fs::metadata(&dir)?.is_dir() {
-            info!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
+            if let Some(name) = dir.file_name() {
+                info!("{}", name.to_string_lossy().bold());
+            }
             info!("{}", show_link(&dir)?)
         }
     }
