@@ -7,8 +7,9 @@ use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
 fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
+    let basestr = base.to_str().unwrap_or_default();
     let mut ignores = HashSet::new();
-    let ifilespat = format!("{}/**/.gitignore", base.to_str().unwrap_or_default());
+    let ifilespat = format!("{basestr}/**/.gitignore");
     for ref path in glob(&ifilespat)?.flatten() {
         for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
             let pat = path.parent().unwrap().join(&line);
@@ -16,7 +17,7 @@ fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
         }
     }
     ignores.extend(glob(&ifilespat)?.flatten());
-    let confpat = format!("{}/{}*", base.to_str().unwrap_or_default(), CONFFILE_NAME);
+    let confpat = format!("{basestr}/{CONFFILE_NAME}*");
     ignores.extend(glob(&confpat)?.flatten());
     Ok(ignores)
 }
@@ -26,7 +27,7 @@ fn test_list_ignores() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     fs::File::create("test/repo/bash/test")?;
     let ignores = list_ignores(&test_base)?;
-    log::info!("ignore: {:?}", ignores);
+    log::info!("ignore: {ignores:?}");
     assert!(ignores.len() > 0);
     Ok(())
 }
@@ -50,7 +51,7 @@ fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
 fn test_list_diritems() -> Result<()> {
     let test_base = PathBuf::from("test/repo/zsh");
     let diritems = list_diritems(&test_base)?;
-    log::info!("diritems: {:?}", diritems);
+    log::info!("diritems: {diritems:?}");
     assert!(diritems.len() > 0);
     Ok(())
 }
@@ -95,7 +96,7 @@ pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
 fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let items = list_items(&test_base, true)?;
-    log::info!("items: {:?}", items);
+    log::info!("items: {items:?}");
     assert!(items.len() > 0);
     Ok(())
 }

@@ -24,7 +24,7 @@ fn run_init(base: &Path) -> Result<()> {
                 .output()
             {
                 Ok(out) => info!("{}", String::from_utf8(out.stdout)?),
-                Err(e) => info!("Error: {:?}", e),
+                Err(e) => info!("Error: {e:?}"),
             }
         }
     }

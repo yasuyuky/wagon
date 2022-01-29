@@ -13,7 +13,7 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
             let content_src = fs::read(&link.source)?;
             if let Ok(content) = fs::read(&link.target) {
                 if content == content_src {
-                    info!("{} {} (exists)", "SKIP:".cyan(), &link);
+                    info!("{} {link} (exists)", "SKIP:".cyan());
                     continue;
                 }
             }
