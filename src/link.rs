@@ -14,7 +14,7 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    info!("{} {} (exists)", "SKIPPED:".cyan(), &link);
+                    info!("{} {link} (exists)", "SKIPPED:".cyan());
                     continue;
                 }
             }
@@ -30,7 +30,7 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
 fn cleanup_dir(d: Option<&Path>) -> Result<()> {
     if let Some(p) = d {
         let p_str = p.to_str().unwrap_or_default();
-        let mut ps = glob(&format!("{}/*", p_str))?;
+        let mut ps = glob(&format!("{p_str}/*"))?;
         if ps.next().is_none() {
             fs::remove_dir(p)?;
             cleanup_dir(p.parent())?;
@@ -44,7 +44,7 @@ fn unlink(base: &Path) -> Result<()> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    info!("{} {} (exists)", "UNLINK:".cyan(), &link);
+                    info!("{} {link} (exists)", "UNLINK:".cyan());
                     fs::remove_file(&link.target)?;
                     cleanup_dir(link.target.parent())?;
                 }

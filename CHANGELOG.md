@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use uid as part of the backup path
 - Use log create for better logging
+- Simplify formattings
 
 ## [0.2.0] - 2021-03-13
 
