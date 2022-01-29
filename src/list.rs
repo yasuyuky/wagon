@@ -1,4 +1,4 @@
-use crate::{config::get_config, dest::get_dest, Link, PathDict, CONFFILE_NAME};
+use crate::{config::get_config, dest::get_dest, Link, CONFFILE_NAME};
 use anyhow::Result;
 use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
@@ -34,7 +34,7 @@ fn filter_ignores(e: &DirEntry) -> bool {
     !(p == CONFFILE_NAME || p == ".git" || p == ".gitignore")
 }
 
-fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
+fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
     let mut items = vec![];
     let pat = format!("{}", dir.to_str().unwrap_or_default());
     for r in WalkBuilder::new(&pat)
@@ -51,7 +51,7 @@ fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
                 if fs::metadata(&p)?.is_file() {
                     items.push(Link::new(p.canonicalize()?, dst, false));
                 } else if fs::metadata(&p)?.is_dir() {
-                    if pathdict.dir.contains(&p) {
+                    if dir_items.contains(&p) {
                         items.push(Link::new(p.canonicalize()?, dst, true));
                     }
                 }
@@ -68,11 +68,7 @@ pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
     } else {
         list_diritems(base)?
     };
-    let pathdict = PathDict {
-        dir: dirs,
-        ign: HashSet::new(),
-    };
-    let items = list_dir(base, base, &pathdict)?;
+    let items = list_dir(base, base, &dirs)?;
     Ok(items)
 }
 
