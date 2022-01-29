@@ -85,3 +85,12 @@ fn test_list_items() -> Result<()> {
     assert!(items.len() > 0);
     Ok(())
 }
+
+#[test]
+fn test_list_items_with_diritems() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/zsh");
+    let items = list_items(&test_base, false)?;
+    log::info!("items: {items:#?}");
+    assert!(items.len() == 2);
+    Ok(())
+}
