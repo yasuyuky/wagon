@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -32,9 +31,4 @@ impl std::fmt::Display for Link {
 pub enum Content {
     Text(Vec<String>),
     Binary(usize, Vec<u8>),
-}
-
-pub struct PathDict {
-    pub dir: HashSet<PathBuf>,
-    pub ign: HashSet<PathBuf>,
 }

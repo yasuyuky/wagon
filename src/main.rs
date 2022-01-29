@@ -14,7 +14,7 @@ mod pull;
 mod show;
 mod structs;
 mod update;
-use structs::{Content, Link, PathDict};
+use structs::{Content, Link};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 
