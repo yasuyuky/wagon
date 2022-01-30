@@ -2,7 +2,6 @@ use crate::{list::list_items, Content, Link};
 use anyhow::Result;
 use chrono::prelude::*;
 use colored::Colorize;
-use glob::glob;
 use log::info;
 use std::fs;
 use std::io::Read;
