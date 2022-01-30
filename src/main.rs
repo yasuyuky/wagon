@@ -77,14 +77,21 @@ fn main() -> Result<()> {
     }
     let current_dir = std::env::current_dir().expect("current dir");
     let base = opt.base.unwrap_or(current_dir);
+    let cwd_or = |dirs: Vec<PathBuf>| -> Vec<PathBuf> {
+        if dirs.is_empty() {
+            vec![std::env::current_dir().expect("current dir")]
+        } else {
+            dirs
+        }
+    };
     match command {
-        Command::Copy { dir } => copy::copy_dirs(&base, &dir)?,
-        Command::Link { dir } => link::link_dirs(&base, &dir)?,
-        Command::Unlink { dir } => link::unlink_dirs(&base, &dir)?,
-        Command::List { dir } => show::show_list(&base, &dir)?,
-        Command::Init { dir } => init::run_inits(&base, &dir)?,
-        Command::Update { dir } => update::run_updates(&base, &dir)?,
-        Command::Pull { dir, target } => pull::pull_files(&base, &dir, &target)?,
+        Command::Copy { dir } => copy::copy_dirs(&base, &cwd_or(dir))?,
+        Command::Link { dir } => link::link_dirs(&base, &cwd_or(dir))?,
+        Command::Unlink { dir } => link::unlink_dirs(&base, &cwd_or(dir))?,
+        Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
+        Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
+        Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
+        Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
         Command::Completion { shell } => {
             let shell = match shell {
                 Shell::Bash => structopt::clap::Shell::Bash,
