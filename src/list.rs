@@ -31,7 +31,7 @@ fn test_list_diritems() -> Result<()> {
 
 fn filter_ignores(e: &DirEntry) -> bool {
     let p = e.path().file_name().unwrap_or_default().to_string_lossy();
-    !(p == CONFFILE_NAME || p == ".git" || p == ".gitignore")
+    !(p == CONFFILE_NAME || p == IGNOREFILE_NAME || p == ".git" || p == ".gitignore")
 }
 
 fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
