@@ -1,36 +1,9 @@
-use crate::{config::get_config, dest::get_dest, Link, PathDict, CONFFILE_NAME};
+use crate::{config::get_config, dest::get_dest, Link, CONFFILE_NAME, IGNOREFILE_NAME};
 use anyhow::Result;
-use glob::glob;
+use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
 use std::fs;
-use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
-
-fn list_ignores(base: &Path) -> Result<HashSet<PathBuf>> {
-    let basestr = base.to_str().unwrap_or_default();
-    let mut ignores = HashSet::new();
-    let ifilespat = format!("{basestr}/**/.gitignore");
-    for ref path in glob(&ifilespat)?.flatten() {
-        for line in io::BufReader::new(fs::File::open(path)?).lines().flatten() {
-            let pat = path.parent().unwrap().join(&line);
-            ignores.extend(glob(pat.to_str().unwrap())?.flatten());
-        }
-    }
-    ignores.extend(glob(&ifilespat)?.flatten());
-    let confpat = format!("{basestr}/{CONFFILE_NAME}*");
-    ignores.extend(glob(&confpat)?.flatten());
-    Ok(ignores)
-}
-
-#[test]
-fn test_list_ignores() -> Result<()> {
-    let test_base = PathBuf::from("test/repo/bash");
-    fs::File::create("test/repo/bash/test")?;
-    let ignores = list_ignores(&test_base)?;
-    log::info!("ignore: {ignores:?}");
-    assert!(ignores.len() > 0);
-    Ok(())
-}
 
 fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut items = HashSet::new();
@@ -56,23 +29,40 @@ fn test_list_diritems() -> Result<()> {
     Ok(())
 }
 
-fn list_dir(base: &Path, dir: &Path, pathdict: &PathDict) -> Result<Vec<Link>> {
+fn filter_ignores(e: &DirEntry) -> bool {
+    let p = e.path().file_name().unwrap_or_default().to_string_lossy();
+    !(p == CONFFILE_NAME || p == ".git" || p == ".gitignore")
+}
+
+fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
     let mut items = vec![];
-    let pat = format!("{}/*", dir.to_str().unwrap_or_default());
-    for p in glob(&pat)?.flatten() {
-        if pathdict.ign.contains(&p) {
-            continue;
-        }
-        let f = p.strip_prefix(&base).unwrap_or(&p);
-        let dst = get_dest(&p)?.canonicalize()?.join(f);
-        if fs::metadata(&p)?.is_file() {
-            items.push(Link::new(p.canonicalize()?, dst, false));
-        } else if fs::metadata(&p)?.is_dir() {
-            if pathdict.dir.contains(&p) {
-                items.push(Link::new(p.canonicalize()?, dst, true));
-            } else {
-                items.extend(list_dir(base, &p, pathdict)?);
+    let pat = format!("{}", dir.to_str().unwrap_or_default());
+    'walk: for r in WalkBuilder::new(&pat)
+        .standard_filters(true)
+        .hidden(false)
+        .add_custom_ignore_filename(IGNOREFILE_NAME)
+        .filter_entry(filter_ignores)
+        .build()
+    {
+        match r {
+            Ok(dent) => {
+                let p = PathBuf::from(dent.path());
+                let f = p.strip_prefix(&base).unwrap_or(&p);
+                let dst = get_dest(&p)?.canonicalize()?.join(f);
+                if fs::metadata(&p)?.is_file() {
+                    for dir_item in dir_items {
+                        if p.starts_with(dir_item) {
+                            continue 'walk;
+                        }
+                    }
+                    items.push(Link::new(p.canonicalize()?, dst, false));
+                } else if fs::metadata(&p)?.is_dir() {
+                    if dir_items.contains(&p) {
+                        items.push(Link::new(p.canonicalize()?, dst, true));
+                    }
+                }
             }
+            Err(err) => println!("{err:?}"),
         }
     }
     Ok(items)
@@ -84,11 +74,7 @@ pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
     } else {
         list_diritems(base)?
     };
-    let pathdict = PathDict {
-        dir: dirs,
-        ign: list_ignores(base)?,
-    };
-    let items = list_dir(base, base, &pathdict)?;
+    let items = list_dir(base, base, &dirs)?;
     Ok(items)
 }
 
@@ -98,5 +84,14 @@ fn test_list_items() -> Result<()> {
     let items = list_items(&test_base, true)?;
     log::info!("items: {items:?}");
     assert!(items.len() > 0);
+    Ok(())
+}
+
+#[test]
+fn test_list_items_with_diritems() -> Result<()> {
+    let test_base = PathBuf::from("test/repo/zsh");
+    let items = list_items(&test_base, false)?;
+    log::info!("items: {items:#?}");
+    assert!(items.len() == 2);
     Ok(())
 }

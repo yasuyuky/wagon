@@ -2,7 +2,6 @@ use crate::{list::list_items, Content, Link};
 use anyhow::Result;
 use chrono::prelude::*;
 use colored::Colorize;
-use glob::glob;
 use log::info;
 use std::fs;
 use std::io::Read;
@@ -90,19 +89,12 @@ fn show_link(base: &Path) -> Result<String> {
     Ok(vs.join("\n"))
 }
 
-fn collect_dirs(base: &Path, dirs: &[PathBuf]) -> Result<Vec<PathBuf>> {
-    if dirs.is_empty() {
-        let pat = format!("{}/[0-9A-Za-z]*", base.to_str().unwrap());
-        Ok(glob(&pat)?.flatten().collect())
-    } else {
-        Ok(dirs.iter().map(PathBuf::from).collect())
-    }
-}
-
-pub fn show_list(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    for dir in collect_dirs(base, dirs)? {
+pub fn show_list(_: &Path, dirs: &[PathBuf]) -> Result<()> {
+    for dir in dirs {
         if fs::metadata(&dir)?.is_dir() {
-            info!("{}", dir.file_name().unwrap().to_str().unwrap().bold());
+            if let Some(name) = dir.file_name() {
+                info!("{}", name.to_string_lossy().bold());
+            }
             info!("{}", show_link(&dir)?)
         }
     }
