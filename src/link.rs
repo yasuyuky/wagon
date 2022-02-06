@@ -11,13 +11,15 @@ use std::path::{Path, PathBuf};
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(base, false)? {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    info!("{} {link} (exists)", "SKIPPED:".cyan());
-                    continue;
-                }
+        if let Ok(readlink) = fs::read_link(&link.target) {
+            if readlink == link.source {
+                info!("{} {link} (exists)", "SKIPPED:".cyan());
+                continue;
+            } else {
+                info!("{} {:?}", "LINK BACKUP:".yellow(), &link.target);
+                backup(backupdir, &link.target)?;
             }
+        } else if link.target.exists() {
             info!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
