@@ -21,8 +21,8 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
             info!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
+        unix::fs::symlink(&link.source, &link.target)?;
         info!("{} {}", "LINKED:".green(), &link);
-        unix::fs::symlink(link.source, link.target)?;
     }
     Ok(())
 }
