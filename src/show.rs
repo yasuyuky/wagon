@@ -95,7 +95,7 @@ pub fn show_list(_: &Path, dirs: &[PathBuf]) -> Result<()> {
             if let Some(name) = dir.file_name() {
                 info!("{}", name.to_string_lossy().bold());
             }
-            info!("{}", show_link(&dir)?)
+            info!("{}", show_link(dir)?)
         }
     }
     Ok(())

@@ -40,7 +40,7 @@ fn filter_ignores(e: &DirEntry) -> bool {
 
 fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
     let mut items = vec![];
-    let pat = format!("{}", dir.to_str().unwrap_or_default());
+    let pat = dir.to_str().unwrap_or_default().to_string();
     'walk: for r in WalkBuilder::new(&pat)
         .standard_filters(true)
         .hidden(false)
@@ -60,10 +60,8 @@ fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec
                         }
                     }
                     items.push(Link::new(p.canonicalize()?, dst, false));
-                } else if fs::metadata(&p)?.is_dir() {
-                    if dir_items.contains(&p) {
-                        items.push(Link::new(p.canonicalize()?, dst, true));
-                    }
+                } else if fs::metadata(&p)?.is_dir() && dir_items.contains(&p) {
+                    items.push(Link::new(p.canonicalize()?, dst, true));
                 }
             }
             Err(err) => println!("{err:?}"),
