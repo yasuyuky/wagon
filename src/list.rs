@@ -60,10 +60,8 @@ fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec
                         }
                     }
                     items.push(Link::new(p.canonicalize()?, dst, false));
-                } else if fs::metadata(&p)?.is_dir() {
-                    if dir_items.contains(&p) {
-                        items.push(Link::new(p.canonicalize()?, dst, true));
-                    }
+                } else if fs::metadata(&p)?.is_dir() && dir_items.contains(&p) {
+                    items.push(Link::new(p.canonicalize()?, dst, true));
                 }
             }
             Err(err) => println!("{err:?}"),
