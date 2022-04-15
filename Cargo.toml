@@ -20,4 +20,4 @@ libc = "0.2.123"
 log = "0.4.16"
 serde = { version = "1.0.136", features = ["derive"] }
 structopt = "0.3.26"
-toml = "0.5.8"
+toml = "0.5.9"
