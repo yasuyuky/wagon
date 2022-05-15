@@ -11,6 +11,7 @@ mod link;
 mod list;
 mod logger;
 mod pull;
+mod repo;
 mod show;
 mod structs;
 mod update;
@@ -49,6 +50,8 @@ enum Command {
     Update { dir: Vec<PathBuf> },
     /// Pull
     Pull { dir: PathBuf, target: Vec<PathBuf> },
+    /// Repo
+    Repo { pathlike: String },
     /// Completion
     Completion {
         #[structopt(subcommand)]
@@ -92,6 +95,7 @@ fn main() -> Result<()> {
         Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
+        Command::Repo { pathlike } => repo::load_repo(&pathlike)?,
         Command::Completion { shell } => {
             let shell = match shell {
                 Shell::Bash => structopt::clap::Shell::Bash,
