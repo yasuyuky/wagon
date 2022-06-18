@@ -3,10 +3,10 @@ use crate::list::list_items;
 use anyhow::Result;
 use colored::Colorize;
 use glob::glob;
-use log::info;
 use std::fs;
 use std::os::unix;
 use std::path::{Path, PathBuf};
+use tracing::info;
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(base, false)? {

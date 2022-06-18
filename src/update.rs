@@ -1,8 +1,8 @@
 use crate::config::get_config;
 use anyhow::Result;
-use log::info;
 use std::env::consts;
 use std::path::{Path, PathBuf};
+use tracing::info;
 
 fn run_update(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base)? {

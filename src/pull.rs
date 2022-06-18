@@ -1,9 +1,9 @@
 use crate::config::get_config;
 use anyhow::Result;
 use colored::Colorize;
-use log::info;
 use std::fs;
 use std::path::{Path, PathBuf};
+use tracing::info;
 
 pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
     if let Some(conf) = get_config(&base.join(&dir))? {

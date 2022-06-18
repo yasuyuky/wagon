@@ -2,10 +2,10 @@ use crate::{list::list_items, Content, Link};
 use anyhow::Result;
 use chrono::prelude::*;
 use colored::Colorize;
-use log::info;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use tracing::info;
 
 fn read_text(f: &mut fs::File) -> Result<Content> {
     let mut buf = String::new();

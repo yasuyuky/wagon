@@ -2,9 +2,9 @@ use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
 use anyhow::Result;
 use colored::Colorize;
-use log::info;
 use std::fs;
 use std::path::{Path, PathBuf};
+use tracing::info;
 
 fn copy(base: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(base, true)? {
