@@ -24,7 +24,7 @@ fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
 fn test_list_diritems() -> Result<()> {
     let test_base = PathBuf::from("test/repo/zsh");
     let diritems = list_diritems(&test_base)?;
-    log::info!("diritems: {diritems:?}");
+    tracing::info!("diritems: {diritems:?}");
     assert!(diritems.len() > 0);
     Ok(())
 }
@@ -84,7 +84,7 @@ pub fn list_items(base: &Path, ignore_dirlink: bool) -> Result<Vec<Link>> {
 fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let items = list_items(&test_base, true)?;
-    log::info!("items: {items:?}");
+    tracing::info!("items: {items:?}");
     assert!(items.len() > 0);
     Ok(())
 }
@@ -93,7 +93,7 @@ fn test_list_items() -> Result<()> {
 fn test_list_items_with_diritems() -> Result<()> {
     let test_base = PathBuf::from("test/repo/zsh");
     let items = list_items(&test_base, false)?;
-    log::info!("items: {items:#?}");
+    tracing::info!("items: {items:#?}");
     assert!(items.len() == 2);
     Ok(())
 }

@@ -1,9 +1,9 @@
 use crate::config::get_config;
 use anyhow::Result;
 use colored::Colorize;
-use log::info;
 use std::env::consts;
 use std::path::{Path, PathBuf};
+use tracing::info;
 
 fn run_init(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base)? {

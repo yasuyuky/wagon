@@ -9,7 +9,6 @@ mod dest;
 mod init;
 mod link;
 mod list;
-mod logger;
 mod pull;
 mod repo;
 mod show;
@@ -70,9 +69,18 @@ enum Shell {
     Elvish,
 }
 
+fn init_tracing() {
+    let subscriber = tracing_subscriber::fmt()
+        .without_time()
+        .with_max_level(tracing::Level::INFO)
+        .with_level(false)
+        .with_target(false)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+}
+
 fn main() -> Result<()> {
-    log::set_logger(&logger::CONSOLE_LOGGER).unwrap_or_default();
-    log::set_max_level(log::LevelFilter::Info);
+    init_tracing();
     let opt = Opt::from_args();
     let command = opt.cmd;
     if opt.color {
