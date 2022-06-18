@@ -9,7 +9,6 @@ mod dest;
 mod init;
 mod link;
 mod list;
-mod logger;
 mod pull;
 mod repo;
 mod show;
