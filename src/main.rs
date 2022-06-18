@@ -69,7 +69,7 @@ enum Shell {
     Elvish,
 }
 
-fn main() -> Result<()> {
+fn init_tracing() {
     let subscriber = tracing_subscriber::fmt()
         .without_time()
         .with_max_level(tracing::Level::INFO)
@@ -77,6 +77,10 @@ fn main() -> Result<()> {
         .with_target(false)
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+}
+
+fn main() -> Result<()> {
+    init_tracing();
     let opt = Opt::from_args();
     let command = opt.cmd;
     if opt.color {
