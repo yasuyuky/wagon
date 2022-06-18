@@ -71,8 +71,13 @@ enum Shell {
 }
 
 fn main() -> Result<()> {
-    log::set_logger(&logger::CONSOLE_LOGGER).unwrap_or_default();
-    log::set_max_level(log::LevelFilter::Info);
+    let subscriber = tracing_subscriber::fmt()
+        .without_time()
+        .with_max_level(tracing::Level::INFO)
+        .with_level(false)
+        .with_target(false)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
     let opt = Opt::from_args();
     let command = opt.cmd;
     if opt.color {
