@@ -56,6 +56,14 @@ You can also use the `copy` subcommand to copy files.
 wagon link bash git tmux ...
 ```
 
+## `wagon repo` Command
+
+```console
+wagon repo OWNER/REPO # for example yasuyuky/wagon
+```
+
+This command will checkout the GitHub Repository to `~/src/github.com/OWNER/REPO`
+
 # Configuration
 
 The `.wagon.toml` file controls the behavior of the command.
