@@ -1,6 +1,5 @@
 use crate::{list::list_items, Content, Link};
 use anyhow::Result;
-use chrono::prelude::*;
 use colored::Colorize;
 use std::fs;
 use std::io::Read;
@@ -23,7 +22,7 @@ fn read_binary(f: &mut fs::File) -> Result<Content> {
 fn read_content(path: &Path) -> Result<(Content, String, String)> {
     let mut f = fs::File::open(path)?;
     let meta = f.metadata()?;
-    let date = format!("{}", DateTime::<Local>::from(meta.modified()?));
+    let date = format!("{}", time::OffsetDateTime::from(meta.modified()?));
     let ps = path.to_str().unwrap_or_default().to_owned();
     Ok((read_text(&mut f).unwrap_or(read_binary(&mut f)?), ps, date))
 }
