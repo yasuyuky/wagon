@@ -26,12 +26,11 @@ fn test_backup() -> Result<()> {
     Ok(())
 }
 
-pub fn get_backuppath() -> PathBuf {
+pub fn get_backuppath() -> Result<PathBuf> {
     let mut backupdir = PathBuf::from(".backups");
     backupdir.push(format!("uid{}", unsafe { getuid() }));
-    let local = time::OffsetDateTime::now_local().unwrap();
-    let format =
-        time::format_description::parse("[year]/[month]/[day]/[hour]:[minute]:[second]").unwrap();
-    backupdir.push(local.format(&format).unwrap());
-    backupdir
+    let local = time::OffsetDateTime::now_local()?;
+    let format = time::format_description::parse("[year]/[month]/[day]/[hour]:[minute]:[second]")?;
+    backupdir.push(local.format(&format)?);
+    Ok(backupdir)
 }

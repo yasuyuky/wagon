@@ -39,7 +39,7 @@ fn test_copy() -> Result<()> {
 }
 
 pub fn copy_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
-    let backupdir = get_backuppath();
+    let backupdir = get_backuppath()?;
     for dir in dirs {
         copy(&base.join(dir), &backupdir)?
     }
