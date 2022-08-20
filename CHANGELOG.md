@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use time crate instead of chrono
 
+### Fixed
+
+- Fix zero byte reading of data
+
 ## [0.4.0] - 2022-07-09
 
 ### Added
