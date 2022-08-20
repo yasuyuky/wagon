@@ -15,7 +15,7 @@ fn read_text(f: &mut fs::File) -> Result<Content> {
 
 fn read_binary(f: &mut fs::File) -> Result<Content> {
     let mut buf = Vec::new();
-    let size = f.read(&mut buf)?;
+    let size = f.read_to_end(&mut buf)?;
     Ok(Content::Binary(size, buf))
 }
 
