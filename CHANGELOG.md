@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Use time crate instead of chrono
+- Replace structopt with clap v3
 
 ### Added
 
