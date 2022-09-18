@@ -1,6 +1,7 @@
 use anyhow::Result;
+use clap::{CommandFactory, Parser};
+use clap_complete::{generate, shells};
 use std::path::PathBuf;
-use structopt::StructOpt;
 
 mod backup;
 mod config;
@@ -21,29 +22,29 @@ use structs::{Content, Link};
 const CONFFILE_NAME: &str = ".wagon.toml";
 const IGNOREFILE_NAME: &str = ".wagonignore";
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Opt {
-    #[structopt(long)]
+    #[clap(long)]
     color: bool,
-    #[structopt(long)]
+    #[clap(long)]
     base: Option<PathBuf>,
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     cmd: Command,
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(rename_all = "kebab-case")]
+#[derive(Debug, Parser)]
+#[clap(rename_all = "kebab-case")]
 enum Command {
     /// Copy
-    #[structopt(alias = "cp")]
+    #[clap(alias = "cp")]
     Copy { dir: Vec<PathBuf> },
     /// Link
-    #[structopt(alias = "ln")]
+    #[clap(alias = "ln")]
     Link { dir: Vec<PathBuf> },
-    #[structopt(alias = "rm")]
+    #[clap(alias = "rm")]
     Unlink { dir: Vec<PathBuf> },
     /// List links
-    #[structopt(alias = "ls")]
+    #[clap(alias = "ls")]
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
@@ -57,14 +58,14 @@ enum Command {
     Wget { url: String },
     /// Completion
     Completion {
-        #[structopt(subcommand)]
+        #[clap(subcommand)]
         shell: Shell,
     },
 }
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Debug, StructOpt)]
-#[structopt(rename_all = "kebab-case")]
+#[derive(Debug, Parser)]
+#[clap(rename_all = "kebab-case")]
 enum Shell {
     Bash,
     Fish,
@@ -85,7 +86,7 @@ fn init_tracing() {
 
 fn main() -> Result<()> {
     init_tracing();
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
     let command = opt.cmd;
     if opt.color {
         std::env::set_var("CLICOLOR_FORCE", "1");
@@ -111,13 +112,14 @@ fn main() -> Result<()> {
         Command::Wget { url } => wget::wget(&url)?,
         Command::Completion { shell } => {
             let shell = match shell {
-                Shell::Bash => structopt::clap::Shell::Bash,
-                Shell::Fish => structopt::clap::Shell::Fish,
-                Shell::Zsh => structopt::clap::Shell::Zsh,
-                Shell::PowerShell => structopt::clap::Shell::PowerShell,
-                Shell::Elvish => structopt::clap::Shell::Elvish,
+                Shell::Bash => shells::Shell::Bash,
+                Shell::Fish => shells::Shell::Fish,
+                Shell::Zsh => shells::Shell::Zsh,
+                Shell::PowerShell => shells::Shell::PowerShell,
+                Shell::Elvish => shells::Shell::Elvish,
             };
-            Command::clap().gen_completions_to("wagon", shell, &mut std::io::stdout());
+            let mut cmd = Opt::command();
+            generate(shell, &mut cmd, "wagon", &mut std::io::stdout());
         }
     }
     Ok(())
