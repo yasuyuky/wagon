@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use time crate instead of chrono
 
+### Added
+
+- Add wget command
+
 ### Fixed
 
 - Fix zero byte reading of data
