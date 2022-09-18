@@ -14,6 +14,8 @@ mod repo;
 mod show;
 mod structs;
 mod update;
+mod wget;
+
 use structs::{Content, Link};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
@@ -51,6 +53,8 @@ enum Command {
     Pull { dir: PathBuf, target: Vec<PathBuf> },
     /// Repo
     Repo { pathlike: String },
+    /// Wget
+    Wget { url: String },
     /// Completion
     Completion {
         #[structopt(subcommand)]
@@ -104,6 +108,7 @@ fn main() -> Result<()> {
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
         Command::Repo { pathlike } => repo::load_repo(&pathlike)?,
+        Command::Wget { url } => wget::wget(&url)?,
         Command::Completion { shell } => {
             let shell = match shell {
                 Shell::Bash => structopt::clap::Shell::Bash,
