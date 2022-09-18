@@ -24,27 +24,27 @@ const IGNOREFILE_NAME: &str = ".wagonignore";
 
 #[derive(Parser)]
 struct Opt {
-    #[structopt(long)]
+    #[clap(long)]
     color: bool,
-    #[structopt(long)]
+    #[clap(long)]
     base: Option<PathBuf>,
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     cmd: Command,
 }
 
 #[derive(Debug, Parser)]
-#[structopt(rename_all = "kebab-case")]
+#[clap(rename_all = "kebab-case")]
 enum Command {
     /// Copy
-    #[structopt(alias = "cp")]
+    #[clap(alias = "cp")]
     Copy { dir: Vec<PathBuf> },
     /// Link
-    #[structopt(alias = "ln")]
+    #[clap(alias = "ln")]
     Link { dir: Vec<PathBuf> },
-    #[structopt(alias = "rm")]
+    #[clap(alias = "rm")]
     Unlink { dir: Vec<PathBuf> },
     /// List links
-    #[structopt(alias = "ls")]
+    #[clap(alias = "ls")]
     List { dir: Vec<PathBuf> },
     /// Init
     Init { dir: Vec<PathBuf> },
@@ -58,14 +58,14 @@ enum Command {
     Wget { url: String },
     /// Completion
     Completion {
-        #[structopt(subcommand)]
+        #[clap(subcommand)]
         shell: Shell,
     },
 }
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Debug, Parser)]
-#[structopt(rename_all = "kebab-case")]
+#[clap(rename_all = "kebab-case")]
 enum Shell {
     Bash,
     Fish,
