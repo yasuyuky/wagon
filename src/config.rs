@@ -7,6 +7,40 @@ use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
+#[derive(Deserialize, Debug, Default)]
+pub struct GlobalConfig {
+    #[serde(default = "default_src")]
+    pub src: PathBuf,
+}
+
+fn default_src() -> PathBuf {
+    PathBuf::from("src")
+}
+
+impl GlobalConfig {
+    pub fn new() -> Self {
+        let path = Self::get_path();
+        if let Ok(mut file) = fs::File::open(path) {
+            let mut buf = String::new();
+            file.read_to_string(&mut buf).unwrap_or_default();
+            toml::from_str::<GlobalConfig>(&buf).unwrap_or_default()
+        } else {
+            GlobalConfig::default()
+        }
+    }
+
+    fn get_path() -> PathBuf {
+        let mut default_home = dirs::home_dir().unwrap_or(PathBuf::from("/"));
+        default_home.push(".config");
+        let mut path = std::env::var("XDG_CONFIG_HOME")
+            .and_then(|s| Ok(PathBuf::from(s)))
+            .unwrap_or(default_home);
+        path.push("wagon");
+        path.push("config.toml");
+        path
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub dest: Option<PathBuf>,
