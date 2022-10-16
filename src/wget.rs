@@ -1,6 +1,7 @@
+use crate::config::GlobalConfig;
+
 pub fn wget(url: &str) -> anyhow::Result<()> {
-    let mut base_path = dirs::home_dir().unwrap_or_default();
-    base_path.push("src");
+    let base_path = GlobalConfig::new().src;
 
     let output = std::process::Command::new("wget")
         .current_dir(&base_path)
