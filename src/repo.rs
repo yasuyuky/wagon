@@ -1,3 +1,4 @@
+use crate::config::GlobalConfig;
 use std::path::PathBuf;
 
 pub fn load_repo(path: &str) -> anyhow::Result<()> {
@@ -18,8 +19,10 @@ pub fn load_repo(path: &str) -> anyhow::Result<()> {
         ("github.com", path)
     };
 
+    let src_base = GlobalConfig::new().ok().and_then(|c| c.src);
+
     let mut repo_path = dirs::home_dir().unwrap_or_default();
-    repo_path.push("src");
+    repo_path.push(src_base.unwrap_or(PathBuf::from("src")));
     repo_path.push(PathBuf::from(site));
     repo_path.push(PathBuf::from(path));
 
