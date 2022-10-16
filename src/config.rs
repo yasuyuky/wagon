@@ -7,18 +7,26 @@ use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct GlobalConfig {
-    pub src: Option<PathBuf>,
+    #[serde(default = "default_src")]
+    pub src: PathBuf,
+}
+
+fn default_src() -> PathBuf {
+    PathBuf::from("src")
 }
 
 impl GlobalConfig {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Self {
         let path = Self::get_path();
-        let mut file = fs::File::open(path)?;
-        let mut buf = String::new();
-        file.read_to_string(&mut buf)?;
-        Ok(toml::from_str::<GlobalConfig>(&buf)?)
+        if let Ok(mut file) = fs::File::open(path) {
+            let mut buf = String::new();
+            file.read_to_string(&mut buf).unwrap_or_default();
+            toml::from_str::<GlobalConfig>(&buf).unwrap_or_default()
+        } else {
+            GlobalConfig::default()
+        }
     }
 
     fn get_path() -> PathBuf {
