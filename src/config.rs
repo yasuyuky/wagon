@@ -27,6 +27,7 @@ impl GlobalConfig {
         let mut path = std::env::var("XDG_CONFIG_HOME")
             .and_then(|s| Ok(PathBuf::from(s)))
             .unwrap_or(default_home);
+        path.push("wagon");
         path.push("config.toml");
         path
     }
