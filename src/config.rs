@@ -8,6 +8,11 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Debug)]
+pub struct GlobalConfig {
+    pub src: Option<PathBuf>,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct Config {
     pub dest: Option<PathBuf>,
     pub init: Option<Vec<Command>>,
