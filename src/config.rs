@@ -14,16 +14,21 @@ pub struct GlobalConfig {
 
 impl GlobalConfig {
     pub fn new() -> Result<Self> {
+        let path = Self::get_path();
+        let mut file = fs::File::open(path)?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        Ok(toml::from_str::<GlobalConfig>(&buf)?)
+    }
+
+    fn get_path() -> PathBuf {
         let mut default_home = dirs::home_dir().unwrap_or(PathBuf::from("/"));
         default_home.push(".config");
         let mut path = std::env::var("XDG_CONFIG_HOME")
             .and_then(|s| Ok(PathBuf::from(s)))
             .unwrap_or(default_home);
         path.push("config.toml");
-        let mut file = fs::File::open(path)?;
-        let mut buf = String::new();
-        file.read_to_string(&mut buf)?;
-        Ok(toml::from_str::<GlobalConfig>(&buf)?)
+        path
     }
 }
 
