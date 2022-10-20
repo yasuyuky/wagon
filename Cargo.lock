@@ -75,9 +75,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.15"
+version = "4.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bf8832993da70a4c6d13c581f4463c2bdda27b9bf1c5498dc4365543abe6d6f"
+checksum = "06badb543e734a2d6568e19a40af66ed5364360b9226184926f89d229b4b4267"
 dependencies = [
  "atty",
  "bitflags",
@@ -94,7 +94,7 @@ version = "4.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfe581a2035db4174cdbdc91265e1aba50f381577f0510d0ad36c7bc59cc84a3"
 dependencies = [
- "clap 4.0.15",
+ "clap 4.0.17",
 ]
 
 [[package]]
@@ -656,7 +656,7 @@ name = "wagon"
 version = "0.4.0"
 dependencies = [
  "anyhow",
- "clap 4.0.15",
+ "clap 4.0.17",
  "clap_complete",
  "colored",
  "difflib",
