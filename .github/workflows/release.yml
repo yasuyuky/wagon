@@ -16,7 +16,7 @@ jobs:
         run: |
           VERSION=$(grep '^version' Cargo.toml | cut -d '"' -f 2)
           echo ${VERSION}
-          echo ::set-output name=v::v${VERSION}
+          echo v=v${VERSION} >>$GITHUB_OUTPUT
           test ${GITHUB_REF/refs\/tags\//} = v${VERSION}
 
       - name: Create Release
