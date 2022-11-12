@@ -30,10 +30,10 @@ impl GlobalConfig {
     }
 
     fn get_path() -> PathBuf {
-        let mut default_home = dirs::home_dir().unwrap_or(PathBuf::from("/"));
+        let mut default_home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"));
         default_home.push(".config");
         let mut path = std::env::var("XDG_CONFIG_HOME")
-            .and_then(|s| Ok(PathBuf::from(s)))
+            .map(PathBuf::from)
             .unwrap_or(default_home);
         path.push("wagon");
         path.push("config.toml");
