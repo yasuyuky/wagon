@@ -90,7 +90,7 @@ fn show_link(base: &Path) -> Result<String> {
 
 pub fn show_list(_: &Path, dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
-        if fs::metadata(&dir)?.is_dir() {
+        if fs::metadata(dir)?.is_dir() {
             if let Some(name) = dir.file_name() {
                 info!("{}", name.to_string_lossy().bold());
             }

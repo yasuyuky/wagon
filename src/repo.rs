@@ -31,7 +31,7 @@ pub fn load_repo(path: &str) -> anyhow::Result<()> {
     } else {
         let url = format!("https://{}/{}.git", site, path);
         let output = std::process::Command::new("git")
-            .args(&["clone", &url, repo_path.to_str().unwrap_or_default()])
+            .args(["clone", &url, repo_path.to_str().unwrap_or_default()])
             .output()?;
         eprintln!("{}: {}", url, String::from_utf8(output.stderr)?);
     }
