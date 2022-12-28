@@ -12,7 +12,7 @@ fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
             Ok(p) => p,
             Err(_) => continue,
         };
-        if !fs::metadata(&full)?.is_dir() {
+        if !fs::metadata(full)?.is_dir() {
             continue;
         }
         items.insert(base.join(d));
@@ -41,7 +41,7 @@ fn filter_ignores(e: &DirEntry) -> bool {
 fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
     let mut items = vec![];
     let pat = dir.to_str().unwrap_or_default().to_string();
-    'walk: for r in WalkBuilder::new(&pat)
+    'walk: for r in WalkBuilder::new(pat)
         .standard_filters(true)
         .hidden(false)
         .add_custom_ignore_filename(IGNOREFILE_NAME)
@@ -51,7 +51,7 @@ fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec
         match r {
             Ok(dent) => {
                 let p = PathBuf::from(dent.path());
-                let f = p.strip_prefix(&base).unwrap_or(&p);
+                let f = p.strip_prefix(base).unwrap_or(&p);
                 let dst = get_dest(&p)?.canonicalize()?.join(f);
                 if fs::metadata(&p)?.is_file() {
                     for dir_item in dir_items {

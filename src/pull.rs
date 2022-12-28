@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use tracing::info;
 
 pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
-    if let Some(conf) = get_config(&base.join(&dir))? {
+    if let Some(conf) = get_config(&base.join(dir))? {
         let dest = conf.dest.unwrap_or_else(|| dirs::home_dir().unwrap());
         for target in targets {
             if target.is_file() {

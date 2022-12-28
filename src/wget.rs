@@ -5,7 +5,7 @@ pub fn wget(url: &str) -> anyhow::Result<()> {
 
     let output = std::process::Command::new("wget")
         .current_dir(&base_path)
-        .args(&["-r", url])
+        .args(["-r", url])
         .output()
         .expect("installed wget command");
 
