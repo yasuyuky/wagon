@@ -8,10 +8,7 @@ use std::path::{Path, PathBuf};
 fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut items = HashSet::new();
     for d in get_config(base)?.and_then(|c| c.dirs).unwrap_or_default() {
-        let full = match base.join(&d).canonicalize() {
-            Ok(p) => p,
-            Err(_) => continue,
-        };
+        let Ok(full) = base.join(&d).canonicalize() else { continue };
         if !fs::metadata(full)?.is_dir() {
             continue;
         }
