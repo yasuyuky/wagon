@@ -12,7 +12,7 @@ pub fn load_repo(path: &str) -> anyhow::Result<()> {
             "gh" => "github.com",
             "gl" => "gitlab.com",
             "bb" => "bitbucket.org",
-            _ => panic!("Unknown site or protocol: {}", pat),
+            _ => panic!("Unknown site or protocol: {pat}"),
         };
         (site, path)
     } else {
@@ -29,7 +29,7 @@ pub fn load_repo(path: &str) -> anyhow::Result<()> {
     if repo_path.exists() {
         eprintln!("Repository already exists.");
     } else {
-        let url = format!("https://{}/{}.git", site, path);
+        let url = format!("https://{site}/{path}.git");
         let output = std::process::Command::new("git")
             .args(["clone", &url, repo_path.to_str().unwrap_or_default()])
             .output()?;
