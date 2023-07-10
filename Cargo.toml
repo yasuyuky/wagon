@@ -18,7 +18,7 @@ dirs = "5.0.1"
 glob = "0.3.1"
 ignore = "0.4.20"
 libc = "0.2.147"
-serde = { version = "1.0.167", features = ["derive"] }
+serde = { version = "1.0.170", features = ["derive"] }
 time = { version = "0.3.22", features = ["local-offset", "formatting"] }
 toml = "0.7.6"
 tracing = "0.1.38"
