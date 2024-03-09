@@ -9,12 +9,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Debug, Default)]
 pub struct GlobalConfig {
-    #[serde(default = "default_src")]
     pub src: PathBuf,
-}
-
-fn default_src() -> PathBuf {
-    PathBuf::from("src")
 }
 
 impl GlobalConfig {
@@ -25,7 +20,9 @@ impl GlobalConfig {
             file.read_to_string(&mut buf).unwrap_or_default();
             toml::from_str::<GlobalConfig>(&buf).unwrap_or_default()
         } else {
-            GlobalConfig::default()
+            Self {
+                src: PathBuf::from("src"),
+            }
         }
     }
 
