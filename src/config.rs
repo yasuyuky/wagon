@@ -9,12 +9,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Debug, Default)]
 pub struct GlobalConfig {
-    #[serde(default = "default_src")]
     pub src: PathBuf,
-}
-
-fn default_src() -> PathBuf {
-    PathBuf::from("src")
 }
 
 impl GlobalConfig {
