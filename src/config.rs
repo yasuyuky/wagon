@@ -25,7 +25,9 @@ impl GlobalConfig {
             file.read_to_string(&mut buf).unwrap_or_default();
             toml::from_str::<GlobalConfig>(&buf).unwrap_or_default()
         } else {
-            GlobalConfig::default()
+            Self {
+                src: PathBuf::from("src"),
+            }
         }
     }
 
