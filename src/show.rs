@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use tracing::info;
 
 fn read_text(f: &mut fs::File) -> Result<Content> {
-    let mut buf = String::new();
+    let mut buf = String::default();
     f.read_to_string(&mut buf)?;
     let ss = buf.lines().map(String::from).collect();
     Ok(Content::Text(ss))
@@ -52,7 +52,7 @@ fn check_binary_diff(ssz: usize, sb: Vec<u8>, tsz: usize, tb: Vec<u8>) -> String
             tsz
         )
     } else {
-        String::new()
+        String::default()
     }
 }
 
