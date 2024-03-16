@@ -16,7 +16,7 @@ impl GlobalConfig {
     pub fn new() -> Self {
         let path = Self::get_path();
         if let Ok(mut file) = fs::File::open(path) {
-            let mut buf = String::new();
+            let mut buf = String::default();
             file.read_to_string(&mut buf).unwrap_or_default();
             toml::from_str::<GlobalConfig>(&buf).unwrap_or_default()
         } else {
@@ -57,7 +57,7 @@ pub struct Command {
 impl Config {
     pub fn from_path(confpath: &Path) -> Result<Self> {
         let mut file = fs::File::open(confpath)?;
-        let mut buf = String::new();
+        let mut buf = String::default();
         file.read_to_string(&mut buf)?;
         Ok(toml::from_str::<Config>(&buf)?)
     }
