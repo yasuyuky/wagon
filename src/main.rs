@@ -84,6 +84,18 @@ fn init_tracing() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }
 
+fn generate_completion(shell: Shell) {
+    let shell = match shell {
+        Shell::Bash => shells::Shell::Bash,
+        Shell::Fish => shells::Shell::Fish,
+        Shell::Zsh => shells::Shell::Zsh,
+        Shell::PowerShell => shells::Shell::PowerShell,
+        Shell::Elvish => shells::Shell::Elvish,
+    };
+    let mut cmd = Opt::command();
+    generate(shell, &mut cmd, "wagon", &mut std::io::stdout());
+}
+
 fn main() -> Result<()> {
     init_tracing();
     let opt = Opt::parse();
@@ -110,17 +122,7 @@ fn main() -> Result<()> {
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
         Command::Repo { pathlike } => repo::load_repo(&pathlike)?,
         Command::Wget { url } => wget::wget(&url)?,
-        Command::Completion { shell } => {
-            let shell = match shell {
-                Shell::Bash => shells::Shell::Bash,
-                Shell::Fish => shells::Shell::Fish,
-                Shell::Zsh => shells::Shell::Zsh,
-                Shell::PowerShell => shells::Shell::PowerShell,
-                Shell::Elvish => shells::Shell::Elvish,
-            };
-            let mut cmd = Opt::command();
-            generate(shell, &mut cmd, "wagon", &mut std::io::stdout());
-        }
+        Command::Completion { shell } => generate_completion(shell),
     }
     Ok(())
 }
