@@ -53,7 +53,7 @@ enum Command {
     /// Pull
     Pull { dir: PathBuf, target: Vec<PathBuf> },
     /// Repo
-    Repo { pathlike: String },
+    Repo { pathlikes: Vec<String> },
     /// Wget
     Wget { url: String },
     /// Completion
@@ -120,7 +120,11 @@ fn main() -> Result<()> {
         Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
-        Command::Repo { pathlike } => repo::load_repo(&pathlike)?,
+        Command::Repo { pathlikes } => {
+            for pathlike in pathlikes {
+                repo::load_repo(&pathlike)?;
+            }
+        }
         Command::Wget { url } => wget::wget(&url)?,
         Command::Completion { shell } => generate_completion(shell),
     }
