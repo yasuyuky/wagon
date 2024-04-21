@@ -122,6 +122,9 @@ fn main() -> Result<()> {
         Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
         Command::Repo { pathlikes } => {
             for pathlike in pathlikes {
+                if pathlike == "checkout" {
+                    continue;
+                }
                 repo::load_repo(&pathlike)?;
             }
         }
