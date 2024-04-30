@@ -17,7 +17,7 @@ difflib = "0.4.0"
 dirs = "5.0.1"
 glob = "0.3.1"
 ignore = "0.4.22"
-libc = "0.2.153"
+libc = "0.2.154"
 serde = { version = "1.0.199", features = ["derive"] }
 time = { version = "0.3.36", features = ["local-offset", "formatting"] }
 toml = "0.8.12"
