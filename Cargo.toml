@@ -10,7 +10,7 @@ version = "0.4.0"
 
 [dependencies]
 anyhow = "1.0.86"
-clap = { version = "4.5.13", features = ["derive"] }
+clap = { version = "4.5.14", features = ["derive"] }
 clap_complete = "4.5.12"
 colored = "2.1.0"
 difflib = "0.4.0"
