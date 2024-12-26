@@ -23,6 +23,7 @@ pub fn load_repo(path: &str) -> anyhow::Result<()> {
 
     let mut repo_path = dirs::home_dir().unwrap_or_default();
     repo_path.push(src_base);
+    eprintln!("Loading repository to: {}", repo_path.display());
     repo_path.push(PathBuf::from(site));
     repo_path.push(PathBuf::from(path));
 
