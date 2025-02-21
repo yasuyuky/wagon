@@ -9,7 +9,7 @@ repository = "https://github.com/yasuyuky/wagon"
 version = "0.4.0"
 
 [dependencies]
-anyhow = "1.0.95"
+anyhow = "1.0.96"
 clap = { version = "4.5.30", features = ["derive"] }
 clap_complete = "4.5.45"
 colored = "3.0.0"
