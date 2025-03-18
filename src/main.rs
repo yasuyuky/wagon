@@ -21,7 +21,7 @@ use structs::{Content, Link};
 
 const CONFFILE_NAME: &str = ".wagon.toml";
 const IGNOREFILE_NAME: &str = ".wagonignore";
-
+const CLICOLOR_FORCE: &str = "CLICOLOR_FORCE";
 #[derive(Parser)]
 struct Opt {
     #[clap(long)]
@@ -101,7 +101,7 @@ fn main() -> Result<()> {
     let opt = Opt::parse();
     let command = opt.cmd;
     if opt.color {
-        std::env::set_var("CLICOLOR_FORCE", "1");
+        unsafe { std::env::set_var(CLICOLOR_FORCE, "1") }
     }
     let current_dir = std::env::current_dir().expect("current dir");
     let base = opt.base.unwrap_or(current_dir);
