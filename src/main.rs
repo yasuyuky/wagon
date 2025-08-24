@@ -82,19 +82,18 @@ enum Command {
         /// Defaults to current working directory when omitted.
         dir: Vec<PathBuf>,
     },
+
+    /// Show current status for each managed item.
+    ///
+    /// Prints LINKING (already linked), EXISTS (regular file exists and differs),
+    /// NOLINK (missing), and a unified diff for text files when content differs.
     #[clap(alias = "ls")]
-    List { dir: Vec<PathBuf> },
-    /// Init
-    Init { dir: Vec<PathBuf> },
-    /// Update
-    Update { dir: Vec<PathBuf> },
-    /// Pull
-    Pull { dir: PathBuf, target: Vec<PathBuf> },
-    /// Repo
-    Repo { pathlikes: Vec<String> },
-    /// Wget
-    Wget { url: String },
-    /// Completion
+    List {
+        /// One or more subdirectories under the base to inspect.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
     Completion {
         #[clap(subcommand)]
         shell: Shell,
