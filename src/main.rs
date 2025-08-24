@@ -125,6 +125,16 @@ enum Command {
         /// One or more absolute paths in the destination to pull from.
         target: Vec<PathBuf>,
     },
+
+    /// Clone a repository to the configured src directory.
+    ///
+    /// Accepts full https URLs (https://<site>/<owner>/<repo>[.git]) or shorthands
+    /// like gh:owner/repo, gl:group/project, bb:team/repo. Repos are placed under
+    /// ~/<src>/<site>/<owner>/<repo> and the path is printed.
+    Repo {
+        /// One or more repository identifiers (URL or shorthand).
+        pathlikes: Vec<String>,
+    },
     Completion {
         #[clap(subcommand)]
         shell: Shell,
