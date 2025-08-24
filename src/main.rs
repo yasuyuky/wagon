@@ -49,10 +49,17 @@ struct Opt {
 #[derive(Debug, Parser)]
 #[clap(rename_all = "kebab-case")]
 enum Command {
-    /// Copy
+    /// Copy files into destination instead of symlinking.
+    ///
+    /// For each file in the repo, copy to the destination (from config.dest in
+    /// .wagon.toml or your home directory by default). Existing files are backed
+    /// up into .backups/uid<uid>/YYYY/MM/DD/HH:MM:SS before being overwritten.
     #[clap(alias = "cp")]
-    Copy { dir: Vec<PathBuf> },
-    /// Link
+    Copy {
+        /// One or more subdirectories under the base to process.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
     #[clap(alias = "ln")]
     Link { dir: Vec<PathBuf> },
     #[clap(alias = "rm")]
