@@ -60,8 +60,17 @@ enum Command {
         /// Defaults to current working directory when omitted.
         dir: Vec<PathBuf>,
     },
+
+    /// Create symlinks in the destination to files in the repo.
+    ///
+    /// Safely backs up pre-existing files before linking. Skips items that are
+    /// already linked to the correct source.
     #[clap(alias = "ln")]
-    Link { dir: Vec<PathBuf> },
+    Link {
+        /// One or more subdirectories under the base to process.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
     #[clap(alias = "rm")]
     Unlink { dir: Vec<PathBuf> },
     /// List links
