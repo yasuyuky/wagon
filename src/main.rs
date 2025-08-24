@@ -30,6 +30,9 @@ const CLICOLOR_FORCE: &str = "CLICOLOR_FORCE";
 #[derive(Parser)]
 #[clap(name = "wagon", version)]
 struct Opt {
+    /// Force colorized output even if not a TTY.
+    ///
+    /// Sets the CLICOLOR_FORCE=1 environment variable for this process.
     #[clap(long)]
     color: bool,
     #[clap(long)]
