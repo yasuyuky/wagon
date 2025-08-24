@@ -71,9 +71,17 @@ enum Command {
         /// Defaults to current working directory when omitted.
         dir: Vec<PathBuf>,
     },
+
+    /// Remove symlinks previously created by `link`.
+    ///
+    /// Only removes links that point to the repo; leaves regular files intact
+    /// and cleans up now-empty parent directories.
     #[clap(alias = "rm")]
-    Unlink { dir: Vec<PathBuf> },
-    /// List links
+    Unlink {
+        /// One or more subdirectories under the base to process.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
     #[clap(alias = "ls")]
     List { dir: Vec<PathBuf> },
     /// Init
