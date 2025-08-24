@@ -144,6 +144,10 @@ enum Command {
         /// The URL to mirror recursively.
         url: String,
     },
+
+    /// Generate shell completion scripts for your shell.
+    ///
+    /// Prints completion to stdout. Example: `wagon completion zsh > _wagon`.
     Completion {
         #[clap(subcommand)]
         shell: Shell,
