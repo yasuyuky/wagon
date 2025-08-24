@@ -28,6 +28,7 @@ const CLICOLOR_FORCE: &str = "CLICOLOR_FORCE";
 /// links or copies them into a destination (defaults to your home), and
 /// provides utilities to preview differences and run init/update hooks.
 #[derive(Parser)]
+#[clap(name = "wagon", version)]
 struct Opt {
     #[clap(long)]
     color: bool,
