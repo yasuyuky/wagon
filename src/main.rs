@@ -103,6 +103,16 @@ enum Command {
         /// Defaults to current working directory when omitted.
         dir: Vec<PathBuf>,
     },
+
+    /// Run update hooks from .wagon.toml.
+    ///
+    /// Executes commands defined in the `update` section for the current OS.
+    /// Useful for routine updates of generated configs.
+    Update {
+        /// One or more subdirectories under the base that contain .wagon.toml.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
     Completion {
         #[clap(subcommand)]
         shell: Shell,
