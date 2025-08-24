@@ -35,8 +35,13 @@ struct Opt {
     /// Sets the CLICOLOR_FORCE=1 environment variable for this process.
     #[clap(long)]
     color: bool,
-    #[clap(long)]
+
+    /// Base directory containing managed files (repo root).
+    ///
+    /// Defaults to the current working directory. Be explicit when operating outside your home using --base to avoid unintended writes.
+    #[clap(long, value_name = "PATH")]
     base: Option<PathBuf>,
+
     #[clap(subcommand)]
     cmd: Command,
 }
