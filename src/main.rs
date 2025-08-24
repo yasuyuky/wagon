@@ -135,6 +135,15 @@ enum Command {
         /// One or more repository identifiers (URL or shorthand).
         pathlikes: Vec<String>,
     },
+
+    /// Mirror a website subtree into the configured src directory using wget.
+    ///
+    /// Requires `wget` to be installed. Runs `wget -r <url>` with current dir set
+    /// to the configured GlobalConfig.src path.
+    Wget {
+        /// The URL to mirror recursively.
+        url: String,
+    },
     Completion {
         #[clap(subcommand)]
         shell: Shell,
