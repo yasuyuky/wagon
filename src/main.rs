@@ -22,6 +22,11 @@ use structs::{Content, Link};
 const CONFFILE_NAME: &str = ".wagon.toml";
 const IGNOREFILE_NAME: &str = ".wagonignore";
 const CLICOLOR_FORCE: &str = "CLICOLOR_FORCE";
+/// Manage dotfiles and project configs with symlinks and copies.
+///
+/// wagon scans a repository-like directory tree for files and directories,
+/// links or copies them into a destination (defaults to your home), and
+/// provides utilities to preview differences and run init/update hooks.
 #[derive(Parser)]
 struct Opt {
     #[clap(long)]
