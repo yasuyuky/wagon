@@ -94,6 +94,15 @@ enum Command {
         dir: Vec<PathBuf>,
     },
 
+    /// Run init hooks from .wagon.toml.
+    ///
+    /// Executes commands defined in the `init` section for the current OS.
+    /// Useful for one-time setup steps after cloning the repo.
+    Init {
+        /// One or more subdirectories under the base that contain .wagon.toml.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
     Completion {
         #[clap(subcommand)]
         shell: Shell,
