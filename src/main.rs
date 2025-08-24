@@ -22,12 +22,26 @@ use structs::{Content, Link};
 const CONFFILE_NAME: &str = ".wagon.toml";
 const IGNOREFILE_NAME: &str = ".wagonignore";
 const CLICOLOR_FORCE: &str = "CLICOLOR_FORCE";
+/// Manage dotfiles and project configs with symlinks and copies.
+///
+/// wagon scans a repository-like directory tree for files and directories,
+/// links or copies them into a destination (defaults to your home), and
+/// provides utilities to preview differences and run init/update hooks.
 #[derive(Parser)]
+#[clap(name = "wagon", version)]
 struct Opt {
+    /// Force colorized output even if not a TTY.
+    ///
+    /// Sets the CLICOLOR_FORCE=1 environment variable for this process.
     #[clap(long)]
     color: bool,
-    #[clap(long)]
+
+    /// Base directory containing managed files (repo root).
+    ///
+    /// Defaults to the current working directory. Be explicit when operating outside your home using --base to avoid unintended writes.
+    #[clap(long, value_name = "PATH")]
     base: Option<PathBuf>,
+
     #[clap(subcommand)]
     cmd: Command,
 }
@@ -35,28 +49,105 @@ struct Opt {
 #[derive(Debug, Parser)]
 #[clap(rename_all = "kebab-case")]
 enum Command {
-    /// Copy
+    /// Copy files into destination instead of symlinking.
+    ///
+    /// For each file in the repo, copy to the destination (from config.dest in
+    /// .wagon.toml or your home directory by default). Existing files are backed
+    /// up into .backups/uid<uid>/YYYY/MM/DD/HH:MM:SS before being overwritten.
     #[clap(alias = "cp")]
-    Copy { dir: Vec<PathBuf> },
-    /// Link
+    Copy {
+        /// One or more subdirectories under the base to process.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
+    /// Create symlinks in the destination to files in the repo.
+    ///
+    /// Safely backs up pre-existing files before linking. Skips items that are
+    /// already linked to the correct source.
     #[clap(alias = "ln")]
-    Link { dir: Vec<PathBuf> },
+    Link {
+        /// One or more subdirectories under the base to process.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
+    /// Remove symlinks previously created by `link`.
+    ///
+    /// Only removes links that point to the repo; leaves regular files intact
+    /// and cleans up now-empty parent directories.
     #[clap(alias = "rm")]
-    Unlink { dir: Vec<PathBuf> },
-    /// List links
+    Unlink {
+        /// One or more subdirectories under the base to process.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
+    /// Show current status for each managed item.
+    ///
+    /// Prints LINKING (already linked), EXISTS (regular file exists and differs),
+    /// NOLINK (missing), and a unified diff for text files when content differs.
     #[clap(alias = "ls")]
-    List { dir: Vec<PathBuf> },
-    /// Init
-    Init { dir: Vec<PathBuf> },
-    /// Update
-    Update { dir: Vec<PathBuf> },
-    /// Pull
-    Pull { dir: PathBuf, target: Vec<PathBuf> },
-    /// Repo
-    Repo { pathlikes: Vec<String> },
-    /// Wget
-    Wget { url: String },
-    /// Completion
+    List {
+        /// One or more subdirectories under the base to inspect.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
+    /// Run init hooks from .wagon.toml.
+    ///
+    /// Executes commands defined in the `init` section for the current OS.
+    /// Useful for one-time setup steps after cloning the repo.
+    Init {
+        /// One or more subdirectories under the base that contain .wagon.toml.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
+    /// Run update hooks from .wagon.toml.
+    ///
+    /// Executes commands defined in the `update` section for the current OS.
+    /// Useful for routine updates of generated configs.
+    Update {
+        /// One or more subdirectories under the base that contain .wagon.toml.
+        /// Defaults to current working directory when omitted.
+        dir: Vec<PathBuf>,
+    },
+
+    /// Pull existing files from destination back into the repo, then relink.
+    ///
+    /// Copies files from the destination (from config.dest or $HOME) into the
+    /// specified repo subdirectory, preserving structure, and then runs `link`
+    /// on that directory to create symlinks back to the pulled files.
+    Pull {
+        /// Repo subdirectory (relative to --base) to copy files into.
+        dir: PathBuf,
+        /// One or more absolute paths in the destination to pull from.
+        target: Vec<PathBuf>,
+    },
+
+    /// Clone a repository to the configured src directory.
+    ///
+    /// Accepts full https URLs (https://<site>/<owner>/<repo>[.git]) or shorthands
+    /// like gh:owner/repo, gl:group/project, bb:team/repo. Repos are placed under
+    /// ~/<src>/<site>/<owner>/<repo> and the path is printed.
+    Repo {
+        /// One or more repository identifiers (URL or shorthand).
+        pathlikes: Vec<String>,
+    },
+
+    /// Mirror a website subtree into the configured src directory using wget.
+    ///
+    /// Requires `wget` to be installed. Runs `wget -r <url>` with current dir set
+    /// to the configured GlobalConfig.src path.
+    Wget {
+        /// The URL to mirror recursively.
+        url: String,
+    },
+
+    /// Generate shell completion scripts for your shell.
+    ///
+    /// Prints completion to stdout. Example: `wagon completion zsh > _wagon`.
     Completion {
         #[clap(subcommand)]
         shell: Shell,
