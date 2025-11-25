@@ -8,10 +8,10 @@ use tracing::info;
 fn run_init(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base)? {
         for initc in conf.init.unwrap_or_default() {
-            if let Some(os) = initc.os {
-                if !os.starts_with(consts::OS) {
-                    continue;
-                }
+            if let Some(os) = initc.os
+                && !os.starts_with(consts::OS)
+            {
+                continue;
             }
             info!(
                 "{}: {} {}",

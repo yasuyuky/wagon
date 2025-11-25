@@ -7,10 +7,10 @@ use tracing::info;
 fn run_update(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base)? {
         for updatec in conf.update.unwrap_or_default() {
-            if let Some(os) = updatec.os {
-                if !os.starts_with(consts::OS) {
-                    continue;
-                }
+            if let Some(os) = updatec.os
+                && !os.starts_with(consts::OS)
+            {
+                continue;
             }
             match std::process::Command::new(updatec.command)
                 .args(updatec.args)
