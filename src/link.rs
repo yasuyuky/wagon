@@ -43,14 +43,13 @@ fn cleanup_dir(d: Option<&Path>) -> Result<()> {
 
 fn unlink(base: &Path) -> Result<()> {
     for link in list_items(base, false)? {
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    info!("{} {link} (exists)", "UNLINK:".cyan());
-                    fs::remove_file(&link.target)?;
-                    cleanup_dir(link.target.parent())?;
-                }
-            }
+        if link.target.exists()
+            && let Ok(readlink) = fs::read_link(&link.target)
+            && readlink == link.source
+        {
+            info!("{} {link} (exists)", "UNLINK:".cyan());
+            fs::remove_file(&link.target)?;
+            cleanup_dir(link.target.parent())?;
         }
     }
     Ok(())
