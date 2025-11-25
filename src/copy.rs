@@ -11,11 +11,11 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if link.target.exists() {
             let content_src = fs::read(&link.source)?;
-            if let Ok(content) = fs::read(&link.target) {
-                if content == content_src {
-                    info!("{} {link} (exists)", "SKIP:".cyan());
-                    continue;
-                }
+            if let Ok(content) = fs::read(&link.target)
+                && content == content_src
+            {
+                info!("{} {link} (exists)", "SKIP:".cyan());
+                continue;
             }
             info!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
