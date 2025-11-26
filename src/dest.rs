@@ -17,7 +17,7 @@ fn test_get_dest() -> Result<()> {
     let test_src = PathBuf::from("test/repo/bash/.bashrc");
     let dest = get_dest(&test_src)?;
     tracing::info!("dest: {dest:?}");
-    assert!(dest == PathBuf::from("test/home"));
+    assert_eq!(dest, Path::new("test/home"));
     Ok(())
 }
 
