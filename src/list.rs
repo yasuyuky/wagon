@@ -22,7 +22,7 @@ fn test_list_diritems() -> Result<()> {
     let test_base = PathBuf::from("test/repo/zsh");
     let diritems = list_diritems(&test_base)?;
     tracing::info!("diritems: {diritems:?}");
-    assert!(diritems.len() > 0);
+    assert!(!diritems.is_empty());
     Ok(())
 }
 
@@ -82,7 +82,7 @@ fn test_list_items() -> Result<()> {
     let test_base = PathBuf::from("test/repo/bash");
     let items = list_items(&test_base, true)?;
     tracing::info!("items: {items:?}");
-    assert!(items.len() > 0);
+    assert!(!items.is_empty());
     Ok(())
 }
 
