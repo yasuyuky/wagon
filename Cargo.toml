@@ -19,7 +19,7 @@ glob = "0.3.3"
 ignore = "0.4.25"
 libc = "0.2.180"
 serde = { version = "1.0.228", features = ["derive"] }
-time = { version = "0.3.44", features = ["local-offset", "formatting"] }
+time = { version = "0.3.45", features = ["local-offset", "formatting"] }
 toml = "0.9.11"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.22"
