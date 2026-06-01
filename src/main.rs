@@ -46,6 +46,15 @@ struct Opt {
     cmd: Command,
 }
 
+fn absolute_path(value: &str) -> std::result::Result<PathBuf, String> {
+    let path = PathBuf::from(value);
+    if path.is_absolute() {
+        Ok(path)
+    } else {
+        Err("target must be an absolute path".to_owned())
+    }
+}
+
 #[derive(Debug, Parser)]
 #[clap(rename_all = "kebab-case")]
 enum Command {
