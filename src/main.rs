@@ -114,11 +114,10 @@ enum Command {
         dir: Vec<PathBuf>,
     },
 
-    /// Pull existing files from destination back into the repo, then relink.
+    /// Pull existing files from destination back into the repo.
     ///
     /// Copies files from the destination (from config.dest or $HOME) into the
-    /// specified repo subdirectory, preserving structure, and then runs `link`
-    /// on that directory to create symlinks back to the pulled files.
+    /// specified repo subdirectory, preserving structure.
     Pull {
         /// Repo subdirectory (relative to --base) to copy files into.
         dir: PathBuf,
