@@ -114,15 +114,13 @@ enum Command {
         dir: Vec<PathBuf>,
     },
 
-    /// Pull existing files from destination back into the repo, then relink.
+    /// Pull existing files from destination back into the repo.
     ///
     /// Copies files from the destination (from config.dest or $HOME) into the
-    /// specified repo subdirectory, preserving structure, and then runs `link`
-    /// on that directory to create symlinks back to the pulled files.
+    /// current directory, preserving structure.
     Pull {
-        /// Repo subdirectory (relative to --base) to copy files into.
-        dir: PathBuf,
         /// One or more absolute paths in the destination to pull from.
+        #[clap(required = true, value_parser = pull::absolute_path)]
         target: Vec<PathBuf>,
     },
 
@@ -195,7 +193,7 @@ fn main() -> Result<()> {
         unsafe { std::env::set_var(CLICOLOR_FORCE, "1") }
     }
     let current_dir = std::env::current_dir().expect("current dir");
-    let base = opt.base.unwrap_or(current_dir);
+    let base = opt.base.unwrap_or_else(|| current_dir.clone());
     let cwd_or = |dirs: Vec<PathBuf>| -> Vec<PathBuf> {
         if dirs.is_empty() {
             vec![std::env::current_dir().expect("current dir")]
@@ -210,7 +208,7 @@ fn main() -> Result<()> {
         Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
         Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
-        Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
+        Command::Pull { target } => pull::pull_files(&base, &current_dir, &target)?,
         Command::Repo { pathlikes } => {
             for pathlike in pathlikes {
                 if pathlike == "checkout" {
