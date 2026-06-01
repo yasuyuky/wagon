@@ -126,11 +126,10 @@ enum Command {
     /// Pull existing files from destination back into the repo.
     ///
     /// Copies files from the destination (from config.dest or $HOME) into the
-    /// specified repo subdirectory, preserving structure.
+    /// current directory, preserving structure.
     Pull {
-        /// Repo subdirectory (relative to --base) to copy files into.
-        dir: PathBuf,
         /// One or more absolute paths in the destination to pull from.
+        #[clap(required = true, value_parser = absolute_path)]
         target: Vec<PathBuf>,
     },
 
