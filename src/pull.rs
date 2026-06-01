@@ -48,11 +48,12 @@ mod tests {
 
     #[test]
     fn pull_accepts_targets_without_dir() {
-        let opt = Opt::try_parse_from(["wagon", "pull", "/tmp/.zshrc"]).unwrap();
+        let target_path = "/example/.zshrc";
+        let opt = Opt::try_parse_from(["wagon", "pull", target_path]).unwrap();
         let Command::Pull { target } = opt.cmd else {
             panic!("expected pull command");
         };
-        assert_eq!(target, vec![PathBuf::from("/tmp/.zshrc")]);
+        assert_eq!(target, vec![PathBuf::from(target_path)]);
     }
 
     #[test]
