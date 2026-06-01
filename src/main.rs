@@ -202,7 +202,7 @@ fn main() -> Result<()> {
         unsafe { std::env::set_var(CLICOLOR_FORCE, "1") }
     }
     let current_dir = std::env::current_dir().expect("current dir");
-    let base = opt.base.unwrap_or(current_dir);
+    let base = opt.base.unwrap_or_else(|| current_dir.clone());
     let cwd_or = |dirs: Vec<PathBuf>| -> Vec<PathBuf> {
         if dirs.is_empty() {
             vec![std::env::current_dir().expect("current dir")]
