@@ -129,7 +129,7 @@ enum Command {
     /// current directory, preserving structure.
     Pull {
         /// One or more absolute paths in the destination to pull from.
-        #[clap(required = true, value_parser = absolute_path)]
+        #[clap(required = true, value_parser = pull::absolute_path)]
         target: Vec<PathBuf>,
     },
 

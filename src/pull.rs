@@ -5,6 +5,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tracing::info;
 
+pub fn absolute_path(value: &str) -> std::result::Result<PathBuf, String> {
+    let path = PathBuf::from(value);
+    if path.is_absolute() {
+        Ok(path)
+    } else {
+        Err("target must be an absolute path".to_owned())
+    }
+}
+
 pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
     if let Some(conf) = get_config(&base.join(dir))? {
         let dest = conf.dest.unwrap_or_else(|| dirs::home_dir().unwrap());
