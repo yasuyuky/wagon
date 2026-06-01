@@ -217,7 +217,7 @@ fn main() -> Result<()> {
         Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
         Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
-        Command::Pull { dir, target } => pull::pull_files(&base, &dir, &cwd_or(target))?,
+        Command::Pull { target } => pull::pull_files(&base, &current_dir, &target)?,
         Command::Repo { pathlikes } => {
             for pathlike in pathlikes {
                 if pathlike == "checkout" {
