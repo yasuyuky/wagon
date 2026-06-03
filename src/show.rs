@@ -1,4 +1,4 @@
-use crate::{list::list_items, Content, Link};
+use crate::{Content, Link, list::list_items};
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
