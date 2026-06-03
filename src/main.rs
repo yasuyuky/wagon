@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser};
 use clap_complete::{generate, shells};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 mod backup;
 mod config;
@@ -183,6 +183,15 @@ fn generate_completion(shell: Shell) {
     };
     let mut cmd = Opt::command();
     generate(shell, &mut cmd, "wagon", &mut std::io::stdout());
+}
+
+fn clean_dir(dir: PathBuf) -> PathBuf {
+    dir.components()
+        .filter(|component| !matches!(component, Component::CurDir))
+        .fold(PathBuf::new(), |mut clean, component| {
+            clean.push(component.as_os_str());
+            clean
+        })
 }
 
 fn resolve_dirs(base: &Path, dirs: Vec<PathBuf>) -> Vec<PathBuf> {
