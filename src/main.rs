@@ -188,7 +188,7 @@ fn generate_completion(shell: Shell) {
 fn clean_dir(dir: PathBuf) -> PathBuf {
     dir.components()
         .filter(|component| !matches!(component, Component::CurDir))
-        .fold(PathBuf::new(), |mut clean, component| {
+        .fold(PathBuf::default(), |mut clean, component| {
             clean.push(component.as_os_str());
             clean
         })
