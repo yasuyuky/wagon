@@ -260,17 +260,17 @@ mod tests {
         assert_eq!(
             resolve_dirs(
                 Path::new("/repo"),
-                vec![PathBuf::from("."), PathBuf::from("zsh")]
+                vec![PathBuf::from("."), PathBuf::from("./zsh")]
             ),
-            vec![PathBuf::from("/repo/."), PathBuf::from("/repo/zsh")]
+            vec![PathBuf::from("/repo"), PathBuf::from("/repo/zsh")]
         );
     }
 
     #[test]
     fn resolve_dirs_keeps_absolute_dirs() {
         assert_eq!(
-            resolve_dirs(Path::new("/repo"), vec![PathBuf::from("/other")]),
-            vec![PathBuf::from("/other")]
+            resolve_dirs(Path::new("/repo"), vec![PathBuf::from("/other/./dir")]),
+            vec![PathBuf::from("/other/dir")]
         );
     }
 }
