@@ -218,7 +218,7 @@ fn main() -> Result<()> {
         }
     };
     match command {
-        Command::Copy { dir } => copy::copy_dirs(&base, &cwd_or(dir))?,
+        Command::Copy { dir } => copy::copy_dirs(&resolve_dirs(&base, dir))?,
         Command::Link { dir } => link::link_dirs(&base, &cwd_or(dir))?,
         Command::Unlink { dir } => link::unlink_dirs(&base, &cwd_or(dir))?,
         Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
