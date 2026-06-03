@@ -42,9 +42,9 @@ fn test_run_init() -> Result<()> {
     Ok(())
 }
 
-pub fn run_inits(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+pub fn run_inits(dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
-        run_init(&base.join(dir))?
+        run_init(dir)?
     }
     Ok(())
 }

@@ -222,7 +222,7 @@ fn main() -> Result<()> {
         Command::Link { dir } => link::link_dirs(&resolve_dirs(&base, dir))?,
         Command::Unlink { dir } => link::unlink_dirs(&resolve_dirs(&base, dir))?,
         Command::List { dir } => show::show_list(&resolve_dirs(&base, dir))?,
-        Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
+        Command::Init { dir } => init::run_inits(&resolve_dirs(&base, dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
         Command::Pull { target } => pull::pull_files(&base, &current_dir, &target)?,
         Command::Repo { pathlikes } => {
