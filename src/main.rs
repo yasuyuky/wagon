@@ -57,7 +57,7 @@ enum Command {
     #[clap(alias = "cp")]
     Copy {
         /// One or more subdirectories under the base to process.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -68,7 +68,7 @@ enum Command {
     #[clap(alias = "ln")]
     Link {
         /// One or more subdirectories under the base to process.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -79,7 +79,7 @@ enum Command {
     #[clap(alias = "rm")]
     Unlink {
         /// One or more subdirectories under the base to process.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -90,7 +90,7 @@ enum Command {
     #[clap(alias = "ls")]
     List {
         /// One or more subdirectories under the base to inspect.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -100,7 +100,7 @@ enum Command {
     /// Useful for one-time setup steps after cloning the repo.
     Init {
         /// One or more subdirectories under the base that contain .wagon.toml.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -110,7 +110,7 @@ enum Command {
     /// Useful for routine updates of generated configs.
     Update {
         /// One or more subdirectories under the base that contain .wagon.toml.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
