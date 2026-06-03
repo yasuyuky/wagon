@@ -221,7 +221,7 @@ fn main() -> Result<()> {
         Command::Copy { dir } => copy::copy_dirs(&resolve_dirs(&base, dir))?,
         Command::Link { dir } => link::link_dirs(&resolve_dirs(&base, dir))?,
         Command::Unlink { dir } => link::unlink_dirs(&resolve_dirs(&base, dir))?,
-        Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
+        Command::List { dir } => show::show_list(&resolve_dirs(&base, dir))?,
         Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
         Command::Pull { target } => pull::pull_files(&base, &current_dir, &target)?,
