@@ -210,13 +210,6 @@ fn main() -> Result<()> {
     }
     let current_dir = std::env::current_dir().expect("current dir");
     let base = opt.base.unwrap_or_else(|| current_dir.clone());
-    let cwd_or = |dirs: Vec<PathBuf>| -> Vec<PathBuf> {
-        if dirs.is_empty() {
-            vec![std::env::current_dir().expect("current dir")]
-        } else {
-            dirs
-        }
-    };
     match command {
         Command::Copy { dir } => copy::copy_dirs(&resolve_dirs(&base, dir))?,
         Command::Link { dir } => link::link_dirs(&resolve_dirs(&base, dir))?,
