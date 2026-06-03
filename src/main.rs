@@ -231,3 +231,34 @@ fn main() -> Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolve_dirs_defaults_to_base() {
+        let base = PathBuf::from("/repo");
+
+        assert_eq!(resolve_dirs(&base, vec![]), vec![base]);
+    }
+
+    #[test]
+    fn resolve_dirs_joins_relative_dirs_to_base() {
+        assert_eq!(
+            resolve_dirs(
+                Path::new("/repo"),
+                vec![PathBuf::from("."), PathBuf::from("zsh")]
+            ),
+            vec![PathBuf::from("/repo/."), PathBuf::from("/repo/zsh")]
+        );
+    }
+
+    #[test]
+    fn resolve_dirs_keeps_absolute_dirs() {
+        assert_eq!(
+            resolve_dirs(Path::new("/repo"), vec![PathBuf::from("/other")]),
+            vec![PathBuf::from("/other")]
+        );
+    }
+}
