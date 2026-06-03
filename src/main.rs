@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser};
 use clap_complete::{generate, shells};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 mod backup;
 mod config;
@@ -183,6 +183,22 @@ fn generate_completion(shell: Shell) {
     };
     let mut cmd = Opt::command();
     generate(shell, &mut cmd, "wagon", &mut std::io::stdout());
+}
+
+fn resolve_dirs(base: &Path, dirs: Vec<PathBuf>) -> Vec<PathBuf> {
+    if dirs.is_empty() {
+        vec![base.to_path_buf()]
+    } else {
+        dirs.into_iter()
+            .map(|dir| {
+                if dir.is_absolute() {
+                    dir
+                } else {
+                    base.join(dir)
+                }
+            })
+            .collect()
+    }
 }
 
 fn main() -> Result<()> {
