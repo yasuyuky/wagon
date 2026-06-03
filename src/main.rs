@@ -220,7 +220,7 @@ fn main() -> Result<()> {
     match command {
         Command::Copy { dir } => copy::copy_dirs(&resolve_dirs(&base, dir))?,
         Command::Link { dir } => link::link_dirs(&resolve_dirs(&base, dir))?,
-        Command::Unlink { dir } => link::unlink_dirs(&base, &cwd_or(dir))?,
+        Command::Unlink { dir } => link::unlink_dirs(&resolve_dirs(&base, dir))?,
         Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
         Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
         Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
