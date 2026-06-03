@@ -68,10 +68,10 @@ fn test_link() -> Result<()> {
     Ok(())
 }
 
-pub fn link_dirs(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+pub fn link_dirs(dirs: &[PathBuf]) -> Result<()> {
     let backupdir = get_backuppath()?;
     for dir in dirs {
-        link(&base.join(dir), &backupdir)?
+        link(dir, &backupdir)?
     }
     Ok(())
 }
