@@ -200,8 +200,11 @@ fn resolve_dirs(base: &Path, dirs: Vec<PathBuf>) -> Vec<PathBuf> {
     } else {
         dirs.into_iter()
             .map(|dir| {
+                let dir = clean_dir(dir);
                 if dir.is_absolute() {
                     dir
+                } else if dir.as_os_str().is_empty() {
+                    base.to_path_buf()
                 } else {
                     base.join(dir)
                 }
