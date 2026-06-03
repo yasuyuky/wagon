@@ -1,4 +1,4 @@
-use crate::{config::get_config, dest::get_dest, Link, CONFFILE_NAME, IGNOREFILE_NAME};
+use crate::{CONFFILE_NAME, IGNOREFILE_NAME, Link, config::get_config, dest::get_dest};
 use anyhow::Result;
 use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
@@ -8,7 +8,9 @@ use std::path::{Path, PathBuf};
 fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut items = HashSet::new();
     for d in get_config(base)?.and_then(|c| c.dirs).unwrap_or_default() {
-        let Ok(full) = base.join(&d).canonicalize() else { continue };
+        let Ok(full) = base.join(&d).canonicalize() else {
+            continue;
+        };
         if !fs::metadata(full)?.is_dir() {
             continue;
         }

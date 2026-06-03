@@ -35,9 +35,9 @@ fn test_run_update() -> Result<()> {
     Ok(())
 }
 
-pub fn run_updates(base: &Path, dirs: &[PathBuf]) -> Result<()> {
+pub fn run_updates(dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
-        run_update(&base.join(dir))?
+        run_update(dir)?
     }
     Ok(())
 }

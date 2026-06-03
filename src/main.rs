@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser};
 use clap_complete::{generate, shells};
-use std::path::PathBuf;
+use std::path::{Component, Path, PathBuf};
 
 mod backup;
 mod config;
@@ -57,7 +57,7 @@ enum Command {
     #[clap(alias = "cp")]
     Copy {
         /// One or more subdirectories under the base to process.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -68,7 +68,7 @@ enum Command {
     #[clap(alias = "ln")]
     Link {
         /// One or more subdirectories under the base to process.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -79,7 +79,7 @@ enum Command {
     #[clap(alias = "rm")]
     Unlink {
         /// One or more subdirectories under the base to process.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -90,7 +90,7 @@ enum Command {
     #[clap(alias = "ls")]
     List {
         /// One or more subdirectories under the base to inspect.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -100,7 +100,7 @@ enum Command {
     /// Useful for one-time setup steps after cloning the repo.
     Init {
         /// One or more subdirectories under the base that contain .wagon.toml.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -110,7 +110,7 @@ enum Command {
     /// Useful for routine updates of generated configs.
     Update {
         /// One or more subdirectories under the base that contain .wagon.toml.
-        /// Defaults to current working directory when omitted.
+        /// Defaults to base when omitted.
         dir: Vec<PathBuf>,
     },
 
@@ -185,6 +185,34 @@ fn generate_completion(shell: Shell) {
     generate(shell, &mut cmd, "wagon", &mut std::io::stdout());
 }
 
+fn clean_dir(dir: PathBuf) -> PathBuf {
+    dir.components()
+        .filter(|component| !matches!(component, Component::CurDir))
+        .fold(PathBuf::default(), |mut clean, component| {
+            clean.push(component.as_os_str());
+            clean
+        })
+}
+
+fn resolve_dirs(base: &Path, dirs: Vec<PathBuf>) -> Vec<PathBuf> {
+    if dirs.is_empty() {
+        vec![base.to_path_buf()]
+    } else {
+        dirs.into_iter()
+            .map(|dir| {
+                let dir = clean_dir(dir);
+                if dir.is_absolute() {
+                    dir
+                } else if dir.as_os_str().is_empty() {
+                    base.to_path_buf()
+                } else {
+                    base.join(dir)
+                }
+            })
+            .collect()
+    }
+}
+
 fn main() -> Result<()> {
     init_tracing();
     let opt = Opt::parse();
@@ -194,20 +222,13 @@ fn main() -> Result<()> {
     }
     let current_dir = std::env::current_dir().expect("current dir");
     let base = opt.base.unwrap_or_else(|| current_dir.clone());
-    let cwd_or = |dirs: Vec<PathBuf>| -> Vec<PathBuf> {
-        if dirs.is_empty() {
-            vec![std::env::current_dir().expect("current dir")]
-        } else {
-            dirs
-        }
-    };
     match command {
-        Command::Copy { dir } => copy::copy_dirs(&base, &cwd_or(dir))?,
-        Command::Link { dir } => link::link_dirs(&base, &cwd_or(dir))?,
-        Command::Unlink { dir } => link::unlink_dirs(&base, &cwd_or(dir))?,
-        Command::List { dir } => show::show_list(&base, &cwd_or(dir))?,
-        Command::Init { dir } => init::run_inits(&base, &cwd_or(dir))?,
-        Command::Update { dir } => update::run_updates(&base, &cwd_or(dir))?,
+        Command::Copy { dir } => copy::copy_dirs(&resolve_dirs(&base, dir))?,
+        Command::Link { dir } => link::link_dirs(&resolve_dirs(&base, dir))?,
+        Command::Unlink { dir } => link::unlink_dirs(&resolve_dirs(&base, dir))?,
+        Command::List { dir } => show::show_list(&resolve_dirs(&base, dir))?,
+        Command::Init { dir } => init::run_inits(&resolve_dirs(&base, dir))?,
+        Command::Update { dir } => update::run_updates(&resolve_dirs(&base, dir))?,
         Command::Pull { target } => pull::pull_files(&base, &current_dir, &target)?,
         Command::Repo { pathlikes } => {
             for pathlike in pathlikes {
@@ -221,4 +242,35 @@ fn main() -> Result<()> {
         Command::Completion { shell } => generate_completion(shell),
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolve_dirs_defaults_to_base() {
+        let base = PathBuf::from("/repo");
+
+        assert_eq!(resolve_dirs(&base, vec![]), vec![base]);
+    }
+
+    #[test]
+    fn resolve_dirs_joins_relative_dirs_to_base() {
+        assert_eq!(
+            resolve_dirs(
+                Path::new("/repo"),
+                vec![PathBuf::from("."), PathBuf::from("./zsh")]
+            ),
+            vec![PathBuf::from("/repo"), PathBuf::from("/repo/zsh")]
+        );
+    }
+
+    #[test]
+    fn resolve_dirs_keeps_absolute_dirs() {
+        assert_eq!(
+            resolve_dirs(Path::new("/repo"), vec![PathBuf::from("/other/./dir")]),
+            vec![PathBuf::from("/other/dir")]
+        );
+    }
 }
