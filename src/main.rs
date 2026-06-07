@@ -169,6 +169,7 @@ fn init_tracing() {
         .with_max_level(tracing::Level::INFO)
         .with_level(false)
         .with_target(false)
+        .with_ansi_sanitization(false)
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }
