@@ -26,7 +26,7 @@ fn color_output_sanitizes_repo_paths() {
     let base = std::env::temp_dir().join(format!("wagon-color-test-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).expect("create temp repo");
-    fs::write(base.join("bad\x1b]2;owned\x07"), "").expect("write temp file");
+    fs::write(base.join("bad\x1b]2;owned\x07\nrow\rcol\tend"), "").expect("write temp file");
 
     let output = Command::new(env!("CARGO_BIN_EXE_wagon"))
         .args(["--color", "--base"])
@@ -39,6 +39,7 @@ fn color_output_sanitizes_repo_paths() {
     assert!(output.status.success(), "command failed: {output:?}");
     let output = [output.stdout, output.stderr].concat();
     assert!(contains(&output, b"\x1b["));
-    assert!(contains(&output, br"bad\x1b]2;owned\x07"));
+    assert!(contains(&output, br"bad\x1b]2;owned\x07\nrow\rcol\tend"));
     assert!(!contains(&output, b"\x1b]2;owned"));
+    assert!(!contains(&output, b"\rcol\tend"));
 }

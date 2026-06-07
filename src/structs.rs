@@ -66,11 +66,14 @@ mod tests {
     #[test]
     fn link_display_sanitizes_control_chars() {
         let link = Link::new(
-            PathBuf::from("src\x1b]2;owned\x07"),
-            PathBuf::from("dst\nbad"),
+            PathBuf::from("src\x1b]2;owned\x07\tname"),
+            PathBuf::from("dst\nbad\rname"),
             false,
         );
 
-        assert_eq!(format!("{link}"), "dst\\nbad -> src\\x1b]2;owned\\x07");
+        assert_eq!(
+            format!("{link}"),
+            "dst\\nbad\\rname -> src\\x1b]2;owned\\x07\\tname"
+        );
     }
 }
