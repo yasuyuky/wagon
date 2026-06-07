@@ -1,35 +1,13 @@
-use crate::{Content, Link, list::list_items};
+use crate::{
+    Content, Link,
+    list::list_items,
+    structs::{display_path, sanitize_display},
+};
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-
-fn sanitize(text: &str) -> String {
-    let mut out = String::with_capacity(text.len());
-    for ch in text.chars() {
-        match ch {
-            '\x1b' => out.push_str("\\x1b"),
-            '\x07' => out.push_str("\\x07"),
-            '\x08' => out.push_str("\\x08"),
-            '\x0c' => out.push_str("\\x0c"),
-            '\x7f' => out.push_str("\\x7f"),
-            ch if ('\u{80}'..='\u{9f}').contains(&ch) => {
-                out.push_str(&format!("\\u{{{:x}}}", ch as u32));
-            }
-            _ => out.push(ch),
-        }
-    }
-    out
-}
-
-fn safe_path(path: &Path) -> String {
-    sanitize(&path.to_string_lossy())
-}
-
-fn safe_link(link: &Link) -> String {
-    format!("{} -> {}", safe_path(&link.target), safe_path(&link.source))
-}
 
 fn read_text(f: &mut fs::File) -> Result<Content> {
     let mut buf = String::default();
@@ -56,7 +34,7 @@ fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td:
     difflib::unified_diff(ss, ts, sp, tp, sd, td, 3)
         .iter()
         .map(|line| {
-            let line = sanitize(line.trim_end());
+            let line = sanitize_display(line.trim_end());
             if line.starts_with('+') {
                 format!("{}", line.green())
             } else if line.starts_with('-') {
@@ -98,20 +76,20 @@ fn show_link(base: &Path) -> Result<String> {
         if link.target.exists() {
             if let Ok(readlink) = fs::read_link(&link.target) {
                 if readlink == link.source {
-                    vs.push(format!("{}: {}", "LINKING".cyan(), safe_link(&link)))
+                    vs.push(format!("{}: {}", "LINKING".cyan(), &link))
                 }
             } else {
                 vs.push(format!(
                     "{}: {}",
                     "EXISTS".magenta(),
-                    safe_path(&link.target)
+                    display_path(&link.target)
                 ));
                 if !link.is_dir {
                     vs.push(show_content_diff(&link)?)
                 }
             }
         } else {
-            vs.push(format!("{}: {}", "NOLINK".yellow(), safe_link(&link)))
+            vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
         }
     }
     Ok(vs.join("\n"))
@@ -121,7 +99,7 @@ pub fn show_list(dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         if fs::metadata(dir)?.is_dir() {
             if let Some(name) = dir.file_name() {
-                eprintln!("{}", sanitize(&name.to_string_lossy()).bold());
+                eprintln!("{}", sanitize_display(&name.to_string_lossy()).bold());
             }
             eprintln!("{}", show_link(dir)?)
         }
