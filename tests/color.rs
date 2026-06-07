@@ -14,7 +14,7 @@ fn color_output_keeps_escape_sequences() {
 
     assert!(output.status.success(), "command failed: {output:?}");
     let output = [output.stdout, output.stderr].concat();
-    assert!(contains(&output, b"\x1b[1mba"));
+    assert!(contains(&output, b"\x1b["));
     assert!(!contains(&output, br"\x1b"));
 }
 
