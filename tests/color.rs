@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 
 fn contains(bytes: &[u8], needle: &[u8]) -> bool {
@@ -7,8 +8,10 @@ fn contains(bytes: &[u8], needle: &[u8]) -> bool {
 
 #[test]
 fn color_output_keeps_escape_sequences() {
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("test/repo/bash");
     let output = Command::new(env!("CARGO_BIN_EXE_wagon"))
-        .args(["--color", "ls", "test/repo/bash"])
+        .args(["--color", "ls"])
+        .arg(base)
         .output()
         .expect("run wagon");
 
