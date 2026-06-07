@@ -1,10 +1,13 @@
-use crate::{Content, Link, list::list_items};
+use crate::{
+    Content, Link,
+    list::list_items,
+    structs::{display_path, sanitize_display},
+};
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use tracing::info;
 
 fn read_text(f: &mut fs::File) -> Result<Content> {
     let mut buf = String::default();
@@ -31,12 +34,13 @@ fn get_text_diff(ss: &[String], ts: &[String], sp: &str, tp: &str, sd: &str, td:
     difflib::unified_diff(ss, ts, sp, tp, sd, td, 3)
         .iter()
         .map(|line| {
+            let line = sanitize_display(line.trim_end());
             if line.starts_with('+') {
-                format!("{}", line.trim_end().green())
+                format!("{}", line.green())
             } else if line.starts_with('-') {
-                format!("{}", line.trim_end().red())
+                format!("{}", line.red())
             } else {
-                line.trim_end().to_string()
+                line
             }
         })
         .collect::<Vec<String>>()
@@ -75,8 +79,11 @@ fn show_link(base: &Path) -> Result<String> {
                     vs.push(format!("{}: {}", "LINKING".cyan(), &link))
                 }
             } else {
-                let tgt = link.target.to_str().unwrap_or_default();
-                vs.push(format!("{}: {}", "EXISTS".magenta(), tgt));
+                vs.push(format!(
+                    "{}: {}",
+                    "EXISTS".magenta(),
+                    display_path(&link.target)
+                ));
                 if !link.is_dir {
                     vs.push(show_content_diff(&link)?)
                 }
@@ -92,9 +99,11 @@ pub fn show_list(dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         if fs::metadata(dir)?.is_dir() {
             if let Some(name) = dir.file_name() {
-                info!("{}", name.to_string_lossy().bold());
+                // Keep ls as direct CLI output so fixed labels can use ANSI
+                // without disabling tracing sanitization globally.
+                eprintln!("{}", sanitize_display(&name.to_string_lossy()).bold());
             }
-            info!("{}", show_link(dir)?)
+            eprintln!("{}", show_link(dir)?)
         }
     }
     Ok(())
