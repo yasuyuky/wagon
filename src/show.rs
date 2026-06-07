@@ -99,6 +99,8 @@ pub fn show_list(dirs: &[PathBuf]) -> Result<()> {
     for dir in dirs {
         if fs::metadata(dir)?.is_dir() {
             if let Some(name) = dir.file_name() {
+                // Keep ls as direct CLI output so fixed labels can use ANSI
+                // without disabling tracing sanitization globally.
                 eprintln!("{}", sanitize_display(&name.to_string_lossy()).bold());
             }
             eprintln!("{}", show_link(dir)?)
