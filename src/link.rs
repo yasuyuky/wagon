@@ -1,12 +1,13 @@
 use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
+use crate::structs::display_path;
 use anyhow::Result;
 use colored::Colorize;
 use glob::glob;
 use std::fs;
 use std::os::unix;
 use std::path::{Path, PathBuf};
-use tracing::info;
+use tracing::{error, info};
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(base, false)? {
@@ -16,6 +17,14 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
                 info!("{} {link} (exists)", "SKIPPED:".cyan());
                 continue;
             } else {
+                if !link.target.exists() {
+                    error!(
+                        "{} broken symlink: {} -> {}",
+                        "ERROR:".red(),
+                        display_path(&link.target),
+                        display_path(&readlink)
+                    );
+                }
                 info!("{} {:?}", "LINK BACKUP:".yellow(), &link.target);
                 backup(backupdir, &link.target)?;
             }
