@@ -76,7 +76,7 @@ fn show_existing_target(link: &Link) -> Result<Vec<String>> {
         "EXISTS".magenta(),
         display_path(&link.target)
     )];
-    if !link.is_dir {
+    if !link.is_dir && fs::metadata(&link.target)?.is_file() {
         lines.push(show_content_diff(link)?)
     }
     Ok(lines)

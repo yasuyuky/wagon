@@ -86,3 +86,30 @@ fn link_reports_broken_source_symlink_and_continues() {
 
     let _ = fs::remove_dir_all(root);
 }
+
+#[test]
+fn list_reports_directory_symlink_conflict_without_diffing() {
+    let root = temp_dir("directory-target");
+    let base = root.join("repo");
+    let dest = root.join("home");
+    let existing_dir = root.join("existing-dir");
+    write_repo(&base, &dest);
+    fs::create_dir_all(&existing_dir).expect("create existing dir");
+    symlink(&existing_dir, dest.join(".bashrc")).expect("create directory symlink");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_wagon"))
+        .current_dir(&root)
+        .args(["--base"])
+        .arg(&base)
+        .arg("ls")
+        .output()
+        .expect("run wagon");
+
+    assert!(output.status.success(), "command failed: {output:?}");
+    assert!(
+        output_text(&output).contains("EXISTS"),
+        "output: {output:?}"
+    );
+
+    let _ = fs::remove_dir_all(root);
+}
