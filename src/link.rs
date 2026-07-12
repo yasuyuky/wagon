@@ -5,9 +5,18 @@ use anyhow::Result;
 use colored::Colorize;
 use glob::glob;
 use std::fs;
+use std::io;
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use tracing::{error, info};
+
+fn target_is_missing(path: &Path) -> Result<bool> {
+    match fs::metadata(path) {
+        Ok(_) => Ok(false),
+        Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(true),
+        Err(err) => Err(err.into()),
+    }
+}
 
 fn link(base: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(base, false)? {
@@ -17,7 +26,7 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
                 info!("{} {link} (exists)", "SKIPPED:".cyan());
                 continue;
             } else {
-                if !link.target.exists() {
+                if target_is_missing(&link.target)? {
                     error!(
                         "{} broken symlink: {} -> {}",
                         "ERROR:".red(),

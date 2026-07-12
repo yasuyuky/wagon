@@ -6,6 +6,7 @@ use colored::Colorize;
 use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 use tracing::error;
 
@@ -44,21 +45,26 @@ fn filter_ignores(e: &DirEntry) -> bool {
 fn metadata_or_report_broken_link(path: &Path) -> Result<Option<fs::Metadata>> {
     match fs::metadata(path) {
         Ok(meta) => Ok(Some(meta)),
-        Err(err) => match fs::symlink_metadata(path) {
-            Ok(meta) if meta.file_type().is_symlink() => {
-                let target = fs::read_link(path)
-                    .map(|target| format!(" -> {}", display_path(&target)))
-                    .unwrap_or_default();
-                error!(
-                    "{} broken symlink: {}{} ({err})",
-                    "ERROR:".red(),
-                    display_path(path),
-                    target
-                );
-                Ok(None)
+        Err(err) => {
+            if err.kind() != io::ErrorKind::NotFound {
+                return Err(err.into());
             }
-            _ => Err(err.into()),
-        },
+            match fs::symlink_metadata(path) {
+                Ok(meta) if meta.file_type().is_symlink() => {
+                    let target = fs::read_link(path)
+                        .map(|target| format!(" -> {}", display_path(&target)))
+                        .unwrap_or_default();
+                    error!(
+                        "{} broken symlink: {}{} ({err})",
+                        "ERROR:".red(),
+                        display_path(path),
+                        target
+                    );
+                    Ok(None)
+                }
+                _ => Err(err.into()),
+            }
+        }
     }
 }
 
