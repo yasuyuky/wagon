@@ -87,4 +87,12 @@ mod tests {
             "dst\\nbad\\rname -> src\\x1b]2;owned\\x07\\tname"
         );
     }
+
+    #[test]
+    fn output_sanitization_preserves_lines() {
+        assert_eq!(
+            sanitize_output("first\nsecond\x1b]2;owned\x07"),
+            "first\nsecond\\x1b]2;owned\\x07"
+        );
+    }
 }
