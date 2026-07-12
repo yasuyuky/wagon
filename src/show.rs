@@ -6,7 +6,7 @@ use crate::{
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
-use std::io::Read;
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 fn read_text(f: &mut fs::File) -> Result<Content> {
@@ -70,24 +70,56 @@ fn show_content_diff(link: &Link) -> Result<String> {
     })
 }
 
+fn target_metadata(path: &Path) -> Result<Option<fs::Metadata>> {
+    match fs::metadata(path) {
+        Ok(meta) => Ok(Some(meta)),
+        Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(None),
+        Err(err) => Err(err.into()),
+    }
+}
+
+fn show_existing_target(link: &Link, target_meta: &fs::Metadata) -> Result<Vec<String>> {
+    let mut lines = vec![format!(
+        "{}: {}",
+        "EXISTS".magenta(),
+        display_path(&link.target)
+    )];
+    if !link.is_dir && target_meta.is_file() {
+        lines.push(show_content_diff(link)?)
+    }
+    Ok(lines)
+}
+
 fn show_link(base: &Path) -> Result<String> {
     let mut vs = vec![];
     for link in list_items(base, false)? {
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    vs.push(format!("{}: {}", "LINKING".cyan(), &link))
-                }
-            } else {
+        let target_meta = match target_metadata(&link.target) {
+            Ok(meta) => meta,
+            Err(err) => {
                 vs.push(format!(
-                    "{}: {}",
-                    "EXISTS".magenta(),
+                    "{} cannot access: {} ({err})",
+                    "ERROR:".red(),
                     display_path(&link.target)
                 ));
-                if !link.is_dir {
-                    vs.push(show_content_diff(&link)?)
-                }
+                continue;
             }
+        };
+        if let Ok(readlink) = fs::read_link(&link.target) {
+            if readlink == link.source {
+                vs.push(format!("{}: {}", "LINKING".cyan(), &link))
+            } else if let Some(meta) = target_meta.as_ref() {
+                vs.extend(show_existing_target(&link, meta)?)
+            } else {
+                vs.push(format!(
+                    "{} broken symlink: {} -> {}",
+                    "ERROR:".red(),
+                    display_path(&link.target),
+                    display_path(&readlink)
+                ));
+                vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
+            }
+        } else if let Some(meta) = target_meta.as_ref() {
+            vs.extend(show_existing_target(&link, meta)?)
         } else {
             vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
         }

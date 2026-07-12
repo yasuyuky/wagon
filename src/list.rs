@@ -1,9 +1,14 @@
-use crate::{CONFFILE_NAME, IGNOREFILE_NAME, Link, config::get_config, dest::get_dest};
+use crate::{
+    CONFFILE_NAME, IGNOREFILE_NAME, Link, config::get_config, dest::get_dest, structs::display_path,
+};
 use anyhow::Result;
+use colored::Colorize;
 use ignore::{DirEntry, WalkBuilder};
 use std::collections::HashSet;
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
+use tracing::error;
 
 fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut items = HashSet::new();
@@ -37,6 +42,32 @@ fn filter_ignores(e: &DirEntry) -> bool {
         || p == ".gitmodules")
 }
 
+fn metadata_or_report_broken_link(path: &Path) -> Result<Option<fs::Metadata>> {
+    match fs::metadata(path) {
+        Ok(meta) => Ok(Some(meta)),
+        Err(err) => {
+            if err.kind() != io::ErrorKind::NotFound {
+                return Err(err.into());
+            }
+            match fs::symlink_metadata(path) {
+                Ok(meta) if meta.file_type().is_symlink() => {
+                    let target = fs::read_link(path)
+                        .map(|target| format!(" -> {}", display_path(&target)))
+                        .unwrap_or_default();
+                    error!(
+                        "{} broken symlink: {}{} ({err})",
+                        "ERROR:".red(),
+                        display_path(path),
+                        target
+                    );
+                    Ok(None)
+                }
+                _ => Err(err.into()),
+            }
+        }
+    }
+}
+
 fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec<Link>> {
     let mut items = vec![];
     let pat = dir.to_str().unwrap_or_default().to_string();
@@ -50,16 +81,19 @@ fn list_dir(base: &Path, dir: &Path, dir_items: &HashSet<PathBuf>) -> Result<Vec
         match r {
             Ok(dent) => {
                 let p = PathBuf::from(dent.path());
+                let Some(meta) = metadata_or_report_broken_link(&p)? else {
+                    continue;
+                };
                 let f = p.strip_prefix(base).unwrap_or(&p);
                 let dst = get_dest(&p)?.canonicalize()?.join(f);
-                if fs::metadata(&p)?.is_file() {
+                if meta.is_file() {
                     for dir_item in dir_items {
                         if p.starts_with(dir_item) {
                             continue 'walk;
                         }
                     }
                     items.push(Link::new(p.canonicalize()?, dst, false));
-                } else if fs::metadata(&p)?.is_dir() && dir_items.contains(&p) {
+                } else if meta.is_dir() && dir_items.contains(&p) {
                     items.push(Link::new(p.canonicalize()?, dst, true));
                 }
             }
