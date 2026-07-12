@@ -70,24 +70,37 @@ fn show_content_diff(link: &Link) -> Result<String> {
     })
 }
 
+fn show_existing_target(link: &Link) -> Result<Vec<String>> {
+    let mut lines = vec![format!(
+        "{}: {}",
+        "EXISTS".magenta(),
+        display_path(&link.target)
+    )];
+    if !link.is_dir {
+        lines.push(show_content_diff(link)?)
+    }
+    Ok(lines)
+}
+
 fn show_link(base: &Path) -> Result<String> {
     let mut vs = vec![];
     for link in list_items(base, false)? {
-        if link.target.exists() {
-            if let Ok(readlink) = fs::read_link(&link.target) {
-                if readlink == link.source {
-                    vs.push(format!("{}: {}", "LINKING".cyan(), &link))
-                }
+        if let Ok(readlink) = fs::read_link(&link.target) {
+            if readlink == link.source {
+                vs.push(format!("{}: {}", "LINKING".cyan(), &link))
+            } else if link.target.exists() {
+                vs.extend(show_existing_target(&link)?)
             } else {
                 vs.push(format!(
-                    "{}: {}",
-                    "EXISTS".magenta(),
-                    display_path(&link.target)
+                    "{} broken symlink: {} -> {}",
+                    "ERROR:".red(),
+                    display_path(&link.target),
+                    display_path(&readlink)
                 ));
-                if !link.is_dir {
-                    vs.push(show_content_diff(&link)?)
-                }
+                vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
             }
+        } else if link.target.exists() {
+            vs.extend(show_existing_target(&link)?)
         } else {
             vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
         }
