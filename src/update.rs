@@ -1,8 +1,7 @@
-use crate::config::get_config;
+use crate::{config::get_config, structs::sanitize_output};
 use anyhow::Result;
 use std::env::consts;
 use std::path::{Path, PathBuf};
-use tracing::info;
 
 fn run_update(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base)? {
@@ -16,8 +15,8 @@ fn run_update(base: &Path) -> Result<()> {
                 .args(updatec.args)
                 .output()
             {
-                Ok(out) => info!("{}", String::from_utf8(out.stdout)?),
-                Err(e) => info!("Error: {:?}", e),
+                Ok(out) => eprintln!("{}", sanitize_output(&String::from_utf8(out.stdout)?)),
+                Err(e) => eprintln!("Error: {e:?}"),
             }
         }
     }

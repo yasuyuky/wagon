@@ -4,7 +4,6 @@ use anyhow::Result;
 use colored::Colorize;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::info;
 
 fn copy(base: &Path, backupdir: &Path) -> Result<()> {
     for link in list_items(base, true)? {
@@ -14,13 +13,13 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
             if let Ok(content) = fs::read(&link.target)
                 && content == content_src
             {
-                info!("{} {link} (exists)", "SKIP:".cyan());
+                eprintln!("{} {link} (exists)", "SKIP:".cyan());
                 continue;
             }
-            info!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            eprintln!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
-        info!("{} {}", "COPY:".green(), &link);
+        eprintln!("{} {}", "COPY:".green(), &link);
         fs::copy(link.source, link.target)?;
     }
     Ok(())

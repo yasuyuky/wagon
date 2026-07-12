@@ -8,7 +8,6 @@ use std::fs;
 use std::io;
 use std::os::unix;
 use std::path::{Path, PathBuf};
-use tracing::{error, info};
 
 fn target_is_missing(path: &Path) -> Result<bool> {
     match fs::metadata(path) {
@@ -23,26 +22,26 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
         fs::create_dir_all(link.target.parent().unwrap_or_else(|| Path::new("/")))?;
         if let Ok(readlink) = fs::read_link(&link.target) {
             if readlink == link.source {
-                info!("{} {link} (exists)", "SKIPPED:".cyan());
+                eprintln!("{} {link} (exists)", "SKIPPED:".cyan());
                 continue;
             } else {
                 if target_is_missing(&link.target)? {
-                    error!(
+                    eprintln!(
                         "{} broken symlink: {} -> {}",
                         "ERROR:".red(),
                         display_path(&link.target),
                         display_path(&readlink)
                     );
                 }
-                info!("{} {:?}", "LINK BACKUP:".yellow(), &link.target);
+                eprintln!("{} {:?}", "LINK BACKUP:".yellow(), &link.target);
                 backup(backupdir, &link.target)?;
             }
         } else if link.target.exists() {
-            info!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            eprintln!("{} {:?}", "BACKUP:".yellow(), &link.target);
             backup(backupdir, &link.target)?;
         }
         unix::fs::symlink(&link.source, &link.target)?;
-        info!("{} {}", "LINKED:".green(), &link);
+        eprintln!("{} {}", "LINKED:".green(), &link);
     }
     Ok(())
 }
@@ -65,7 +64,7 @@ fn unlink(base: &Path) -> Result<()> {
             && let Ok(readlink) = fs::read_link(&link.target)
             && readlink == link.source
         {
-            info!("{} {link} (exists)", "UNLINK:".cyan());
+            eprintln!("{} {link} (exists)", "UNLINK:".cyan());
             fs::remove_file(&link.target)?;
             cleanup_dir(link.target.parent())?;
         }
