@@ -82,10 +82,10 @@ mod tests {
     }
 
     #[test]
-    fn output_sanitization_preserves_lines() {
+    fn output_sanitization_preserves_only_newlines() {
         assert_eq!(
-            sanitize_output("first\nsecond\x1b]2;owned\x07"),
-            "first\nsecond\\x1b]2;owned\\x07"
+            sanitize_output("first\nsecond\rrewrite\tcolumn\0end\x1b]2;owned\x07"),
+            "first\nsecond\\rrewrite\\tcolumn\\x00end\\x1b]2;owned\\x07"
         );
     }
 }
