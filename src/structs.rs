@@ -1,10 +1,10 @@
 use std::path::{Path, PathBuf};
 
-pub(crate) fn sanitize_display(text: &str) -> String {
+pub(crate) fn sanitize_output(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for ch in text.chars() {
         match ch {
-            '\n' => out.push_str("\\n"),
+            '\n' => out.push(ch),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
             '\x1b' => out.push_str("\\x1b"),
@@ -20,6 +20,10 @@ pub(crate) fn sanitize_display(text: &str) -> String {
         }
     }
     out
+}
+
+pub(crate) fn sanitize_display(text: &str) -> String {
+    sanitize_output(text).replace('\n', "\\n")
 }
 
 pub(crate) fn display_path(path: &Path) -> String {
@@ -74,6 +78,14 @@ mod tests {
         assert_eq!(
             format!("{link}"),
             "dst\\nbad\\rname -> src\\x1b]2;owned\\x07\\tname"
+        );
+    }
+
+    #[test]
+    fn output_sanitization_preserves_only_newlines() {
+        assert_eq!(
+            sanitize_output("first\nsecond\rrewrite\tcolumn\0end\x1b]2;owned\x07"),
+            "first\nsecond\\rrewrite\\tcolumn\\x00end\\x1b]2;owned\\x07"
         );
     }
 }

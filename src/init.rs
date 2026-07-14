@@ -1,9 +1,11 @@
-use crate::config::get_config;
+use crate::{
+    config::get_config,
+    structs::{sanitize_display, sanitize_output},
+};
 use anyhow::Result;
 use colored::Colorize;
 use std::env::consts;
 use std::path::{Path, PathBuf};
-use tracing::info;
 
 fn run_init(base: &Path) -> Result<()> {
     if let Some(conf) = get_config(base)? {
@@ -13,18 +15,18 @@ fn run_init(base: &Path) -> Result<()> {
             {
                 continue;
             }
-            info!(
+            eprintln!(
                 "{}: {} {}",
                 "COMMAND".cyan(),
-                initc.command,
-                initc.args.join(" ")
+                sanitize_display(&initc.command),
+                sanitize_display(&initc.args.join(" "))
             );
             match std::process::Command::new(initc.command)
                 .args(initc.args)
                 .output()
             {
-                Ok(out) => info!("{}", String::from_utf8(out.stdout)?),
-                Err(e) => info!("Error: {e:?}"),
+                Ok(out) => eprintln!("{}", sanitize_output(&String::from_utf8(out.stdout)?)),
+                Err(e) => eprintln!("Error: {e:?}"),
             }
         }
     }

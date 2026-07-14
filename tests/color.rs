@@ -22,6 +22,35 @@ fn color_output_keeps_escape_sequences() {
 }
 
 #[test]
+fn link_and_copy_outputs_keep_escape_sequences() {
+    let root =
+        std::env::temp_dir().join(format!("wagon-command-color-test-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&root);
+
+    for command in ["link", "copy"] {
+        let base = root.join(command).join("repo");
+        let dest = root.join(command).join("home");
+        fs::create_dir_all(&base).expect("create temp repo");
+        fs::create_dir_all(&dest).expect("create temp destination");
+        fs::write(base.join(".wagon.toml"), format!("dest = {dest:?}\n")).expect("write config");
+        fs::write(base.join("file"), "content").expect("write source file");
+
+        let output = Command::new(env!("CARGO_BIN_EXE_wagon"))
+            .args(["--color", "--base"])
+            .arg(&base)
+            .arg(command)
+            .output()
+            .expect("run wagon");
+
+        assert!(output.status.success(), "command failed: {output:?}");
+        assert!(contains(&output.stderr, b"\x1b["), "output: {output:?}");
+        assert!(!contains(&output.stderr, br"\x1b"), "output: {output:?}");
+    }
+
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
 fn color_output_sanitizes_repo_paths() {
     let base = std::env::temp_dir().join(format!("wagon-color-test-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);

@@ -8,7 +8,6 @@ use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use tracing::error;
 
 fn list_diritems(base: &Path) -> Result<HashSet<PathBuf>> {
     let mut items = HashSet::new();
@@ -54,7 +53,7 @@ fn metadata_or_report_broken_link(path: &Path) -> Result<Option<fs::Metadata>> {
                     let target = fs::read_link(path)
                         .map(|target| format!(" -> {}", display_path(&target)))
                         .unwrap_or_default();
-                    error!(
+                    eprintln!(
                         "{} broken symlink: {}{} ({err})",
                         "ERROR:".red(),
                         display_path(path),

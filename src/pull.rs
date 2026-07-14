@@ -1,9 +1,8 @@
-use crate::config::get_config;
+use crate::{config::get_config, structs::display_path};
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::info;
 
 pub fn absolute_path(value: &str) -> std::result::Result<PathBuf, String> {
     let path = PathBuf::from(value);
@@ -20,19 +19,19 @@ pub fn pull_files(base: &Path, dir: &Path, targets: &[PathBuf]) -> Result<()> {
         for target in targets {
             if target.is_file() {
                 let to = dir.join(target.strip_prefix(&dest)?);
-                info!(
+                eprintln!(
                     "{}: {} -> {}",
                     "PULL".cyan(),
-                    target.to_str().unwrap_or_default(),
-                    to.to_str().unwrap_or_default(),
+                    display_path(target),
+                    display_path(&to),
                 );
                 fs::create_dir_all(to.parent().unwrap_or(dir))?;
                 fs::copy(target, to)?;
             } else {
-                info!(
+                eprintln!(
                     "{}: {} is directory",
                     "SKIPPED".yellow(),
-                    target.to_str().unwrap_or_default()
+                    display_path(target)
                 );
             }
         }
