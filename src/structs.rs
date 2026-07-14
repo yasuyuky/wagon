@@ -4,11 +4,15 @@ pub(crate) fn sanitize_output(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for ch in text.chars() {
         match ch {
+            '\n' => out.push(ch),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
             '\x1b' => out.push_str("\\x1b"),
             '\x07' => out.push_str("\\x07"),
             '\x08' => out.push_str("\\x08"),
             '\x0c' => out.push_str("\\x0c"),
             '\x7f' => out.push_str("\\x7f"),
+            ch if ch < ' ' => out.push_str(&format!("\\x{:02x}", ch as u32)),
             ch if ('\u{80}'..='\u{9f}').contains(&ch) => {
                 out.push_str(&format!("\\u{{{:x}}}", ch as u32));
             }
@@ -19,18 +23,7 @@ pub(crate) fn sanitize_output(text: &str) -> String {
 }
 
 pub(crate) fn sanitize_display(text: &str) -> String {
-    sanitize_output(text)
-        .chars()
-        .fold(String::default(), |mut out, ch| {
-            match ch {
-                '\n' => out.push_str("\\n"),
-                '\r' => out.push_str("\\r"),
-                '\t' => out.push_str("\\t"),
-                ch if ch < ' ' => out.push_str(&format!("\\x{:02x}", ch as u32)),
-                _ => out.push(ch),
-            }
-            out
-        })
+    sanitize_output(text).replace('\n', "\\n")
 }
 
 pub(crate) fn display_path(path: &Path) -> String {
