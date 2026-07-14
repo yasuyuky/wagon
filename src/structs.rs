@@ -21,7 +21,7 @@ pub(crate) fn sanitize_output(text: &str) -> String {
 pub(crate) fn sanitize_display(text: &str) -> String {
     sanitize_output(text)
         .chars()
-        .fold(String::new(), |mut out, ch| {
+        .fold(String::default(), |mut out, ch| {
             match ch {
                 '\n' => out.push_str("\\n"),
                 '\r' => out.push_str("\\r"),
