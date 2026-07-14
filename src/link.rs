@@ -33,11 +33,11 @@ fn link(base: &Path, backupdir: &Path) -> Result<()> {
                         display_path(&readlink)
                     );
                 }
-                eprintln!("{} {:?}", "LINK BACKUP:".yellow(), &link.target);
+                eprintln!("{} {}", "LINK BACKUP:".yellow(), display_path(&link.target));
                 backup(backupdir, &link.target)?;
             }
         } else if link.target.exists() {
-            eprintln!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            eprintln!("{} {}", "BACKUP:".yellow(), display_path(&link.target));
             backup(backupdir, &link.target)?;
         }
         unix::fs::symlink(&link.source, &link.target)?;

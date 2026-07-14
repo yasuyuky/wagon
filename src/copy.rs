@@ -1,5 +1,6 @@
 use crate::backup::{backup, get_backuppath};
 use crate::list::list_items;
+use crate::structs::display_path;
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
@@ -16,7 +17,7 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
                 eprintln!("{} {link} (exists)", "SKIP:".cyan());
                 continue;
             }
-            eprintln!("{} {:?}", "BACKUP:".yellow(), &link.target);
+            eprintln!("{} {}", "BACKUP:".yellow(), display_path(&link.target));
             backup(backupdir, &link.target)?;
         }
         eprintln!("{} {}", "COPY:".green(), &link);
