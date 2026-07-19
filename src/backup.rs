@@ -30,9 +30,23 @@ pub fn get_backuppath() -> Result<PathBuf> {
     let mut backupdir = PathBuf::from(".backups");
     backupdir.push(format!("uid{}", unsafe { getuid() }));
     let local = time::OffsetDateTime::now_local()?;
+    backupdir.push(format_backuptime(local)?);
+    Ok(backupdir)
+}
+
+fn format_backuptime(datetime: time::OffsetDateTime) -> Result<String> {
     let format = time::format_description::parse_borrowed::<2>(
         "[year]/[month]/[day]/[hour]:[minute]:[second]",
     )?;
-    backupdir.push(local.format(&format)?);
-    Ok(backupdir)
+    Ok(datetime.format(&format)?)
+}
+
+#[test]
+fn formats_backup_time() -> Result<()> {
+    let datetime = time::Date::from_calendar_date(2026, time::Month::July, 19)?
+        .with_hms(12, 34, 56)?
+        .assume_utc();
+
+    assert_eq!(format_backuptime(datetime)?, "2026/07/19/12:34:56");
+    Ok(())
 }
