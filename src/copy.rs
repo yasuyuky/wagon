@@ -20,7 +20,7 @@ fn copy(base: &Path, backupdir: &Path) -> Result<()> {
             eprintln!("{} {}", "BACKUP:".yellow(), display_path(&link.target));
             backup(backupdir, &link.target)?;
         }
-        eprintln!("{} {}", "COPY:".green(), &link);
+        eprintln!("{} {}", "COPY:".green(), link);
         fs::copy(link.source, link.target)?;
     }
     Ok(())
