@@ -106,7 +106,7 @@ fn show_link(base: &Path) -> Result<String> {
         };
         if let Ok(readlink) = fs::read_link(&link.target) {
             if readlink == link.source {
-                vs.push(format!("{}: {}", "LINKING".cyan(), &link))
+                vs.push(format!("{}: {}", "LINKING".cyan(), link))
             } else if let Some(meta) = target_meta.as_ref() {
                 vs.extend(show_existing_target(&link, meta)?)
             } else {
@@ -116,12 +116,12 @@ fn show_link(base: &Path) -> Result<String> {
                     display_path(&link.target),
                     display_path(&readlink)
                 ));
-                vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
+                vs.push(format!("{}: {}", "NOLINK".yellow(), link))
             }
         } else if let Some(meta) = target_meta.as_ref() {
             vs.extend(show_existing_target(&link, meta)?)
         } else {
-            vs.push(format!("{}: {}", "NOLINK".yellow(), &link))
+            vs.push(format!("{}: {}", "NOLINK".yellow(), link))
         }
     }
     Ok(vs.join("\n"))
